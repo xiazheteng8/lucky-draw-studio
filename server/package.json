@@ -1,0 +1,29 @@
+{
+  "name": "youtube-giveaway-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "setup": "node deploy/setup-local.mjs"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-session": "^1.18.1",
+    "fflate": "^0.8.3",
+    "helmet": "^8.0.0",
+    "qrcode": "^1.5.4",
+    "sql.js": "^1.12.0"
+  },
+  "overrides": {
+    "@mapbox/node-pre-gyp": {
+      "tar": "^7.5.22"
+    },
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
+  }
+}

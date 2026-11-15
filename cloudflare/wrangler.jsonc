@@ -1,0 +1,52 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "xia-zhe-teng-giveaway",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-10-30",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "none"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "REGISTRY",
+        "class_name": "StudioRegistry"
+      },
+      {
+        "name": "ROOMS",
+        "class_name": "DrawRoom"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "StudioRegistry",
+        "DrawRoom"
+      ]
+    }
+  ],
+  "vars": {
+    "STUDIO_ID": "main"
+  },
+  "secrets": {
+    "required": []
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0.1
+  },
+  "kv_namespaces": [
+    {
+      "binding": "CONFIG_KV",
+      "id": "YOUR_CONFIG_KV_ID"
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+.waiting-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 50rpx;
+}
+
+.waiting-icon {
+  font-size: 70rpx;
+  color: #64ffda;
+  text-shadow: 0 0 30rpx rgba(100, 255, 218, 0.8);
+  margin-bottom: 20rpx;
+}
+
+.waiting-title {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 12rpx;
+}
+
+.waiting-desc {
+  font-size: 26rpx;
+  color: #8fb6c5;
+  margin-bottom: 50rpx;
+}
+
+.my-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 30rpx;
+  background: rgba(20, 50, 75, 0.65);
+  border: 1px solid rgba(100, 255, 218, 0.4);
+}
+
+.my-avatar {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  border: 4rpx solid #ffd700;
+  box-shadow: 0 0 25rpx rgba(255, 215, 0, 0.5);
+  margin-bottom: 20rpx;
+  background: #102a45;
+}
+
+.my-name {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 16rpx;
+}
+
+.my-status {
+  font-size: 24rpx;
+  color: #64ffda;
+}
+
+.winner-card {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.25) 0%, rgba(255, 136, 0, 0.15) 100%);
+  border: 2px solid #ffd700;
+  border-radius: 24rpx;
+  padding: 50rpx 30rpx;
+  text-align: center;
+  box-shadow: 0 0 50rpx rgba(255, 215, 0, 0.4);
+  margin: 30rpx 0;
+}
+
+.winner-trophy {
+  font-size: 90rpx;
+  margin-bottom: 16rpx;
+}
+
+.winner-title {
+  font-size: 46rpx;
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 10rpx;
+}
+
+.winner-rank {
+  font-size: 32rpx;
+  color: #ffffff;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+
+.winner-desc {
+  font-size: 24rpx;
+  color: #e2f1f8;
+}
+
+.thank-card {
+  text-align: center;
+  padding: 50rpx 30rpx;
+  margin: 30rpx 0;
+}
+
+.thank-icon {
+  font-size: 60rpx;
+  margin-bottom: 16rpx;
+}
+
+.thank-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 10rpx;
+}
+
+.thank-desc {
+  font-size: 26rpx;
+  color: #8fb6c5;
+}
+
+.card-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #e2f1f8;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.winners-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.winner-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(10, 25, 47, 0.6);
+  padding: 16rpx 24rpx;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+}
+
+.w-rank {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.w-name {
+  color: #ffffff;
+}
+
+.w-prize {
+  color: #64ffda;
+}

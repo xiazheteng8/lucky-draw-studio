@@ -1,0 +1,18 @@
+[Unit]
+Description=YouTube Giveaway Studio
+After=network.target
+[Service]
+Type=simple
+User=youtube-giveaway-studio
+Group=youtube-giveaway-studio
+WorkingDirectory=/opt/youtube-giveaway-studio
+EnvironmentFile=/opt/youtube-giveaway-studio/.env
+ExecStart=/usr/bin/node src/server.js
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/opt/youtube-giveaway-studio/data
+[Install]
+WantedBy=multi-user.target

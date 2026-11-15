@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /owner
+Disallow: /account
+Sitemap: https://lucky.xiazheteng.fun/sitemap.xml

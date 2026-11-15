@@ -1,0 +1,131 @@
+/** app.wxss - 瞎折腾摇奖吧小程序多主题系统 **/
+page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+view, text, button, input, textarea {
+  box-sizing: border-box;
+}
+
+.theme-wrapper {
+  min-height: 100vh;
+  padding: 30rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+/* ==================== 1. 春节专享 (cny) 典雅高升红金与温润米宣 ==================== */
+.theme-cny {
+  background-color: #fbf6ee;
+  background-image: 
+    radial-gradient(ellipse at 50% 0%, rgba(200, 16, 46, 0.08) 0%, transparent 70%),
+    linear-gradient(180deg, #fdfaf4 0%, #f6eee0 100%);
+  color: #3b2820;
+  --card-bg: #ffffff;
+  --card-border: #ebdccd;
+  --accent: #c8102e;
+  --gold: #ffd700;
+  --btn-grad: linear-gradient(135deg, #c8102e 0%, #8e0014 100%);
+  --btn-text: #ffffff;
+}
+
+/* ==================== 2. 深海科技 (deepsea) 水母声呐科技蓝 ==================== */
+.theme-deepsea {
+  background-color: #040a14;
+  background-image: radial-gradient(ellipse at 50% 10%, rgba(0, 240, 255, 0.12) 0%, transparent 65%);
+  color: #edf8ff;
+  --card-bg: rgba(11, 28, 46, 0.88);
+  --card-border: #204666;
+  --accent: #00f0ff;
+  --gold: #ffd269;
+  --btn-grad: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+  --btn-text: #ffffff;
+}
+
+/* ==================== 3. 极光森林 (aurora) 冷杉极光翡翠翠绿 ==================== */
+.theme-aurora {
+  background-color: #030f0a;
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(95, 251, 193, 0.15) 0%, transparent 65%);
+  color: #eafff1;
+  --card-bg: rgba(8, 32, 23, 0.88);
+  --card-border: #1f5c44;
+  --accent: #5ffbc1;
+  --gold: #e9dca3;
+  --btn-grad: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+  --btn-text: #ffffff;
+}
+
+/* ==================== 4. 黑金盛典 (gala) Art Deco 放射金与香槟金箔 ==================== */
+.theme-gala {
+  background-color: #0c0a08;
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(245, 197, 66, 0.14) 0%, transparent 60%);
+  color: #fff3dc;
+  --card-bg: rgba(30, 24, 17, 0.9);
+  --card-border: #665233;
+  --accent: #f5c542;
+  --gold: #ffdd87;
+  --btn-grad: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%);
+  --btn-text: #1a1202;
+}
+
+/* ==================== 5. 霓虹赛博 (cyber) 滚轮网格与全息护盾 ==================== */
+.theme-cyber {
+  background-color: #0b0416;
+  background-image: radial-gradient(ellipse at 50% 10%, rgba(255, 42, 133, 0.16) 0%, transparent 60%);
+  color: #fff0ff;
+  --card-bg: rgba(26, 9, 48, 0.9);
+  --card-border: #6b2a8f;
+  --accent: #ff2a85;
+  --gold: #00f5ff;
+  --btn-grad: linear-gradient(135deg, #f72585 0%, #7209b7 100%);
+  --btn-text: #ffffff;
+}
+
+/* ==================== 6. 樱花物语 (sakura) 和风落樱与金涟漪 ==================== */
+.theme-sakura {
+  background-color: #fff3f6;
+  background-image: radial-gradient(ellipse at 80% 0%, rgba(216, 74, 117, 0.12) 0%, transparent 65%);
+  color: #4a2a3f;
+  --card-bg: #ffffff;
+  --card-border: #e8b8ce;
+  --accent: #d84a75;
+  --gold: #b87428;
+  --btn-grad: linear-gradient(135deg, #d84a75 0%, #b8335d 100%);
+  --btn-text: #ffffff;
+}
+
+/* ==================== 7. 纸白手作 (paper) 宣纸墨香与朱砂金石印 ==================== */
+.theme-paper {
+  background-color: #f7f4ea;
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(179, 32, 37, 0.08) 0%, transparent 60%);
+  color: #1f2429;
+  --card-bg: #ffffff;
+  --card-border: #cbd4d8;
+  --accent: #b32025;
+  --gold: #966518;
+  --btn-grad: linear-gradient(135deg, #b32025 0%, #8c1519 100%);
+  --btn-text: #ffffff;
+}
+
+/* 通用卡片与按钮样式 */
+.card {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--card-border, #ebdccd);
+  border-radius: 24rpx;
+  padding: 40rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.06);
+}
+
+.btn-primary {
+  background: var(--btn-grad, linear-gradient(135deg, #c8102e 0%, #8e0014 100%));
+  color: var(--btn-text, #ffffff);
+  border-radius: 40rpx;
+  font-weight: bold;
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.2);
+}
+
+.theme-festival{--page-bg:#fff3e4;--card-bg:#fff9ef;--card-border:#ecc5a2;--btn-grad:linear-gradient(135deg,#df2931,#a51020);--btn-text:#fff3d5;color:#7c1520;background:#fff3e4}.theme-caishen{--page-bg:#390c14;--card-bg:#621722;--card-border:#d39c4e;--btn-grad:linear-gradient(135deg,#f4cf7a,#e6a942);--btn-text:#69101a;color:#ffe6b1;background:#390c14}

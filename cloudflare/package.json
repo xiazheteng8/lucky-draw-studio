@@ -1,0 +1,33 @@
+{
+  "name": "youtube-giveaway-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "wrangler deploy",
+    "cf:check": "wrangler deploy --dry-run",
+    "deploy:cloudflare": "node deploy/cloudflare.mjs",
+    "pages:build": "node deploy/build-pages.mjs",
+    "pages:dev": "node deploy/pages.mjs dev",
+    "pages:deploy": "node deploy/pages.mjs deploy",
+    "pages:test": "node deploy/test-pages.mjs",
+    "deploy:oneclick": "node deploy/oneclick.mjs"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "fflate": "^0.8.3",
+    "qrcode": "^1.5.4"
+  },
+  "overrides": {
+    "@mapbox/node-pre-gyp": {
+      "tar": "^7.5.22"
+    },
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
+  },
+  "devDependencies": {
+    "wrangler": "^4.156.0"
+  }
+}

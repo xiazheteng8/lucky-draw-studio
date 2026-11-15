@@ -1,0 +1,24 @@
+<view class="container main-page">
+  <view class="hero">
+    <image class="logo" src="https://lucky.xiazheteng.fun/default-logo.jpg" mode="aspectFit" />
+    <view class="badge">STUDIO / LIVE SYSTEM</view>
+    <view class="title">瞎折腾摇奖吧</view>
+    <view class="subtitle">每一份期待，都值得被看见</view>
+  </view>
+
+  <view class="action-box">
+    <view class="scan-card">
+      <view class="scan-icon-wrap">
+        <text class="scan-icon">✦</text>
+      </view>
+      <view class="scan-tip">对准年会 / 活动大屏二维码</view>
+      <button class="btn-primary scan-btn" bindtap="scanQrCode">
+        扫码参加活动
+      </button>
+    </view>
+  </view>
+
+  <view class="footer">
+    <text>瞎折腾摇奖吧 · 现场互动系统 ✦</text>
+  </view>
+</view>

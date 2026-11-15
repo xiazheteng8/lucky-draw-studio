@@ -1,0 +1,12 @@
+/* Shared theme details; use theme tokens instead of the original blue palette. */
+html[data-theme] :is(.orbit,.tag,.actions a,.music-library-actions a){border-color:var(--cyan)}
+html[data-theme] .preview-target{text-shadow:0 0 40px var(--theme-glow)}
+html[data-theme] .preview-avatar{background:var(--panel);color:var(--ink);box-shadow:0 0 20px var(--theme-glow)}
+html[data-theme] .live-dot{box-shadow:0 0 12px var(--cyan)}
+html[data-theme] :is(.metrics span,.sidebar-bottom,summary,footer){color:var(--muted)}
+html[data-theme] .metrics article::after{color:var(--cyan)}
+html[data-theme] :is(.actions a,.music-library-actions a){background:var(--theme-deep);color:var(--cyan)}
+html[data-theme] :is(#notice,.checkin-banner){background:var(--theme-glow);color:var(--ink);border-color:var(--line)}
+html[data-theme] .primary:hover{background:var(--cyan);color:var(--on-accent);filter:brightness(1.08)}
+html[data-theme] :is(input,select,textarea):focus{border-color:var(--cyan);box-shadow:0 0 0 3px var(--theme-glow)}
+html[data-theme] .stage-preview{border-radius:var(--theme-radius)}

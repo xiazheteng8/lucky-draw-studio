@@ -1,0 +1,15 @@
+import {fileURLToPath} from 'node:url';
+import fs from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+const root=new URL('../',import.meta.url),token=process.env.CLOUDFLARE_API_TOKEN;
+if(!token)throw Error('请通过环境变量 CLOUDFLARE_API_TOKEN 提供令牌');
+async function api(path,method='GET',body){const r=await fetch('https://api.cloudflare.com/client/v4'+path,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const d=await r.json();if(!r.ok||!d.success)throw Error(d.errors?.map(x=>x.message).join('; ')||'Cloudflare 请求失败');return d.result}
+const accounts=await api('/accounts');const account=process.env.CLOUDFLARE_ACCOUNT_ID||accounts[0]?.id;if(!account)throw Error('未找到 Cloudflare 账户');process.env.CLOUDFLARE_ACCOUNT_ID=account;
+const cfg=JSON.parse(await fs.readFile(new URL('wrangler.jsonc',root),'utf8')),namespaces=await api('/accounts/'+account+'/storage/kv/namespaces');let kv=namespaces.find(n=>n.id===cfg.kv_namespaces?.find(b=>b.binding==='CONFIG_KV')?.id)||namespaces.find(n=>n.title==='giveaway-config');if(!kv)kv=await api('/accounts/'+account+'/storage/kv/namespaces','POST',{title:'giveaway-config'});cfg.kv_namespaces=[...(cfg.kv_namespaces||[]).filter(b=>b.binding!=='CONFIG_KV'),{binding:'CONFIG_KV',id:kv.id}];
+if(process.env.ENABLE_R2==='1'){const bucket=process.env.R2_BUCKET_NAME||'giveaway-media';const existing=await api('/accounts/'+account+'/r2/buckets');if(!existing.buckets?.some(b=>b.name===bucket))await api('/accounts/'+account+'/r2/buckets','POST',{name:bucket});cfg.r2_buckets=[{binding:'MEDIA',bucket_name:bucket}]}
+await fs.writeFile(new URL('wrangler.jsonc',root),JSON.stringify(cfg,null,2)+'\n');
+function run(file,args){const result=spawnSync(process.execPath,[file,...args],{cwd:root,stdio:'inherit',env:process.env});if(result.status!==0)throw Error('部署命令失败，已停止后续操作')}
+const cli=fileURLToPath(new URL('node_modules/wrangler/bin/wrangler.js',root));run(cli,['deploy']);if(process.env.ENV_IMPORT_FILE)run(cli,['secret','bulk',process.env.ENV_IMPORT_FILE]);
+const project=process.env.CF_PAGES_PROJECT||'lucky',path='/accounts/'+account+'/pages/projects/'+project;let state;try{state=await api(path)}catch{state=await api('/accounts/'+account+'/pages/projects','POST',{name:project,production_branch:'main'})}
+const deployment_configs={};for(const kind of ['production','preview']){const previous=state.deployment_configs?.[kind]||{};deployment_configs[kind]={...previous,compatibility_date:'2026-10-30',compatibility_flags:[...new Set([...(previous.compatibility_flags||[]),'nodejs_compat'])],services:{...(previous.services||{}),API_BACKEND:{service:cfg.name,environment:previous.services?.API_BACKEND?.environment||''}}}}
+await api(path,'PATCH',{deployment_configs});run(fileURLToPath(new URL('deploy/build-pages.mjs',root)),[]);run(fileURLToPath(new URL('deploy/pages.mjs',root)),['deploy','--project-name',project,'--branch','main']);console.log('Worker、KV 和 Pages 已部署。域名、OAuth 回调和第三方平台配置请核对部署说明。');

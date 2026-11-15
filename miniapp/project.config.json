@@ -1,0 +1,19 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "瞎折腾摇奖吧-现场互动小程序",
+  "description": "瞎折腾摇奖吧年会大屏现场扫码签到与弹幕互动小程序",
+  "appid": "touristappid",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "preloadBackgroundData": false,
+    "minified": true,
+    "uglifyFileName": false,
+    "checkInvalidKey": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "3.3.4",
+  "condition": {}
+}

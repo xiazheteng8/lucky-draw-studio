@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/checkin/checkin",
+    "pages/result/result",
+    "pages/index/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#0b1528",
+    "navigationBarTitleText": "瞎折腾摇奖吧",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0b1528"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

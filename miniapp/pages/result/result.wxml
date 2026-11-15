@@ -1,0 +1,49 @@
+<view class="theme-wrapper {{ themeClass }}">
+  <!-- 待开奖状态 -->
+  <view wx:if="{{ !campaign.isDrawn }}" class="waiting-box">
+    <view class="waiting-icon">✦</view>
+    <view class="waiting-title">已进入大屏抽奖池</view>
+    <view class="waiting-desc">好运正在酝酿，请留意现场大屏开奖！</view>
+
+    <view class="card my-card">
+      <image class="my-avatar" src="{{ myAvatar || 'https://lucky.xiazheteng.fun/default-logo.jpg' }}" mode="aspectFill" />
+      <view class="my-name">{{ myName }}</view>
+      <view class="my-status">● 抽奖资格已锁定</view>
+    </view>
+
+    <!-- 持续点爱心送心意 -->
+    <view class="card like-card">
+      <view class="card-title">现场互动 · 持续送爱心</view>
+      <button class="heart-btn {{ heartPulsing ? 'pulse' : '' }}" bindtap="tapHeart">
+        <text class="heart-icon">♥</text> 送上爱心 ({{ likesCount }})
+      </button>
+    </view>
+  </view>
+
+  <!-- 已开奖状态 -->
+  <view wx:else class="result-box">
+    <view wx:if="{{ isWinner }}" class="winner-card">
+      <view class="winner-trophy">🏆</view>
+      <view class="winner-title">恭喜您！中奖啦！</view>
+      <view class="winner-rank">{{ winnerPrize || '幸运大奖' }}</view>
+      <view class="winner-desc">请联系现场主持人或工作人员核对领奖</view>
+    </view>
+
+    <view wx:else class="card thank-card">
+      <view class="thank-icon">✨</view>
+      <view class="thank-title">本次抽奖已揭晓</view>
+      <view class="thank-desc">好运先欠着，感谢您的热情参与！</view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">✦ 现场中奖名单 ✦</view>
+      <view class="winners-list">
+        <view wx:for="{{ campaign.winners }}" wx:key="id" class="winner-item">
+          <text class="w-rank">{{ item.rank || '★' }}</text>
+          <text class="w-name">{{ item.name }}</text>
+          <text class="w-prize">{{ item.prize || '' }}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
