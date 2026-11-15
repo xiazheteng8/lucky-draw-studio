@@ -1,12 +1,12 @@
 # 瞎折腾摇奖吧
 
-[GitHub Pages 示范站点](https://xiazheteng8.github.io/lucky-draw-studio/) · [VPS 示范站点](https://lucky.xiazheteng.fun/) · [YouTube @xiazheteng8](https://www.youtube.com/@xiazheteng8) · [Telegram @xiazheteng8](https://t.me/xiazheteng8)
+[Cloudflare Pages 示范站点](https://lucky-37k.pages.dev/) · [VPS 示范站点](https://lucky.xiazheteng.fun/) · [YouTube @xiazheteng8](https://www.youtube.com/@xiazheteng8) · [Telegram @xiazheteng8](https://t.me/xiazheteng8)
 
 [跳到 GitHub Pages / Cloudflare Pages 教程](README-PAGES.md)
 
 ## 初始账号与密码
 
-摇奖吧没有预设站长账号或密码。首次在自己的部署地址打开 `/setup`，自行创建站长账号和密码。本地或 VPS 按启动提示使用私有初始化密钥（若已配置）；Cloudflare Worker 部署前自行设置私有 `SETUP_KEY`。初始化完成后用 `/owner` 进入站长后台。GitHub Pages 示范页是通往 VPS 的入口。
+摇奖吧没有预设站长账号或密码。首次在自己的部署地址打开 `/setup`，自行创建站长账号和密码。本地或 VPS 按启动提示使用私有初始化密钥（若已配置）；Cloudflare Worker 部署前自行设置私有 `SETUP_KEY`。初始化完成后用 `/owner` 进入站长后台。想在线体验可打开顶部的 Cloudflare Pages 或 VPS 示范站点。
 
 ## 1. 准备源码
 

@@ -1,6 +1,6 @@
 # 瞎折腾摇奖吧 · 微信小程序端 (现场扫码签到与弹幕互动)
 
-[GitHub Pages 示范站点](https://xiazheteng8.github.io/lucky-draw-studio/) · [VPS 示范站点](https://lucky.xiazheteng.fun/) · [YouTube @xiazheteng8](https://www.youtube.com/@xiazheteng8) · [Telegram @xiazheteng8](https://t.me/xiazheteng8)
+[Cloudflare Pages 示范站点](https://lucky-37k.pages.dev/) · [VPS 示范站点](https://lucky.xiazheteng.fun/) · [YouTube @xiazheteng8](https://www.youtube.com/@xiazheteng8) · [Telegram @xiazheteng8](https://t.me/xiazheteng8)
 
 第一次部署？先按 [本地 / VPS 新手教程](../README.md) 或 [GitHub / Cloudflare Pages 新手教程](../README-PAGES.md) 操作。下面是本目录的功能和配置参考。
 
