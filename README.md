@@ -34,15 +34,19 @@
 
 **推荐顺序：先部署网站 → 用自定义名单试抽 → 按需配置 API → 接入小程序 → 真机验收。**
 
+## 🆕 v2.1.1 更新
+
+结束活动与删除清理分开处理，大屏新增结束按钮；结束后停止报名、互动和回放计时，保留名单、结果及录像。[查看完整更新说明](CHANGELOG.md)。
+
 ## 📦 下载最新版
 
 👉 [查看全部 Releases](https://github.com/xiazheteng8/lucky-draw-studio/releases)
 
 | 安装包 | 用途 |
 | --- | --- |
-| [🖥️ VPS / 本地版](https://github.com/xiazheteng8/lucky-draw-studio/releases/download/v2.1.0/lucky-draw-vps-v2.1.0.zip) | 包含网站源码、资源与 Docker 配置 |
-| [☁️ Cloudflare 版](https://github.com/xiazheteng8/lucky-draw-studio/releases/download/v2.1.0/lucky-draw-pages-v2.1.0.zip) | 包含 Worker 后端、Pages 前端与构建脚本 |
-| [📱 微信小程序](https://github.com/xiazheteng8/lucky-draw-studio/releases/download/v2.1.0/lucky-draw-miniapp-v2.1.0.zip) | 导入微信开发者工具，连接自己的后端 |
+| [🖥️ VPS / 本地版](https://github.com/xiazheteng8/lucky-draw-studio/releases/download/v2.1.1/lucky-draw-vps-v2.1.1.zip) | 包含网站源码、资源与 Docker 配置 |
+| [☁️ Cloudflare 版](https://github.com/xiazheteng8/lucky-draw-studio/releases/download/v2.1.1/lucky-draw-pages-v2.1.1.zip) | 包含 Worker 后端、Pages 前端与构建脚本 |
+| [📱 微信小程序](https://github.com/xiazheteng8/lucky-draw-studio/releases/download/v2.1.1/lucky-draw-miniapp-v2.1.1.zip) | 导入微信开发者工具，连接自己的后端 |
 
 安装包不带生产密钥、数据库、真实名单和会话。[查看本次更新](CHANGELOG.md)。
 
