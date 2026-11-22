@@ -150,3 +150,9 @@
 .w-prize {
   color: #64ffda;
 }
+.waiting-title,.winner-rank,.thank-title,.card-title,.w-name{color:var(--text,#f1f7ff)}
+.waiting-desc,.winner-desc,.thank-desc{color:var(--muted,#c3d3e3)}
+.my-card,.winner-card{background:var(--card-bg,#10273a);border-color:var(--tag-border,#527b91)}
+.my-name,.winner-title,.w-rank{color:var(--gold,#ffd269)}
+.my-status,.w-prize{color:var(--accent,#8ae8ff)}
+.winner-item{background:var(--tag-bg,#173c52);color:var(--text,#f1f7ff)}

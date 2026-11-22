@@ -129,3 +129,15 @@ view, text, button, input, textarea {
 }
 
 .theme-festival{--page-bg:#fff3e4;--card-bg:#fff9ef;--card-border:#ecc5a2;--btn-grad:linear-gradient(135deg,#df2931,#a51020);--btn-text:#fff3d5;color:#7c1520;background:#fff3e4}.theme-caishen{--page-bg:#390c14;--card-bg:#621722;--card-border:#d39c4e;--btn-grad:linear-gradient(135deg,#f4cf7a,#e6a942);--btn-text:#69101a;color:#ffe6b1;background:#390c14}
+/* 文字与底色对比保持稳定，不使用透明文字叠加主题底色。 */
+page{background:#071525;color:#f1f7ff}
+.theme-deepsea{--text:#f1f7ff;--muted:#c3d3e3;--field-bg:#071522;--field-text:#f1f7ff;--tag-bg:#173c52;--tag-border:#527b91;--card-bg:#10273a;--btn-grad:linear-gradient(135deg,#075caa,#154978);--btn-text:#fff}
+.theme-aurora{--text:#effff4;--muted:#c2ddcf;--field-bg:#092217;--field-text:#effff4;--tag-bg:#1c4933;--tag-border:#5b8a71;--card-bg:#123323;--btn-grad:linear-gradient(135deg,#176044,#134c37);--btn-text:#fff}
+.theme-gala{--text:#fff5df;--muted:#dbcdb4;--field-bg:#17120c;--field-text:#fff5df;--tag-bg:#43351d;--tag-border:#8d794b;--card-bg:#2a2218;--btn-grad:linear-gradient(135deg,#edcc82,#d7ad56);--btn-text:#241902}
+.theme-cyber{--text:#fff3ff;--muted:#e0c7e6;--field-bg:#160c23;--field-text:#fff3ff;--tag-bg:#452044;--tag-border:#916797;--card-bg:#291739;--accent:#ff9ecb;--btn-grad:linear-gradient(135deg,#9f1e60,#612375);--btn-text:#fff}
+.theme-sakura{--text:#442332;--muted:#704b5c;--field-bg:#fff7fa;--field-text:#442332;--tag-bg:#f9e8f0;--tag-border:#c79caf;--card-bg:#fff;--accent:#a22d54;--gold:#80500b;--btn-grad:linear-gradient(135deg,#a22d54,#8b2549);--btn-text:#fff}
+.theme-paper{--text:#202c34;--muted:#52616c;--field-bg:#f5f4ee;--field-text:#202c34;--tag-bg:#efeee8;--tag-border:#a9b2b7;--card-bg:#fff;--accent:#98262b;--gold:#785013;--btn-grad:linear-gradient(135deg,#98262b,#772027);--btn-text:#fff}
+.theme-cny,.theme-festival{--text:#571e21;--muted:#755047;--field-bg:#fff5e8;--field-text:#571e21;--tag-bg:#f9e7d4;--tag-border:#cbac91;--card-bg:#fffaf2;--accent:#ad1927;--gold:#80500b;--btn-grad:linear-gradient(135deg,#b01624,#8c1620);--btn-text:#fff}
+.theme-caishen{--text:#fff0cf;--muted:#f1d4b2;--field-bg:#3a1018;--field-text:#fff0cf;--tag-bg:#762d38;--tag-border:#c68b71;--card-bg:#601b28;--accent:#ffdb8e;--gold:#ffdb8e;--btn-grad:linear-gradient(135deg,#edcc82,#dcaf5d);--btn-text:#44131b}
+.theme-wrapper{color:var(--text,#f1f7ff)}
+.card{color:var(--text,#f1f7ff)}

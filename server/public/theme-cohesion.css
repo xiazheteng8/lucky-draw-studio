@@ -1,0 +1,87 @@
+/* Each theme uses a dimensional, nine-slice frame. Corner artwork never stretches. */
+html{--surface-frame:url('/themes/frame-deepsea.svg');--surface-fill:var(--panel);--frame-width:28px}
+html[data-theme=aurora]{--surface-frame:url('/themes/frame-aurora.svg')}
+html[data-theme=gala]{--surface-frame:url('/themes/frame-gala.svg')}
+html[data-theme=cyber]{--surface-frame:url('/themes/frame-cyber.svg')}
+html[data-theme=sakura]{--surface-frame:url('/themes/frame-sakura.svg')}
+html[data-theme=paper]{--surface-frame:url('/themes/frame-paper.svg')}
+html[data-theme=caishen]{--surface-frame:url('/themes/frame-caishen.svg')}
+html[data-theme]:not([data-theme=festival]) :is(.sidebar,.page-heading,.metrics article,.panel,.giveaway,dialog,#login){position:relative;isolation:isolate;box-shadow:inset 0 0 22px color-mix(in srgb,var(--theme-deep) 26%,transparent),0 12px 26px #0002!important;background-image:linear-gradient(135deg,color-mix(in srgb,var(--cyan) 6%,transparent),transparent 45%,color-mix(in srgb,var(--gold) 5%,transparent))!important;background-color:var(--surface-fill)!important;background-size:100% 100%!important;background-position:center!important;background-repeat:no-repeat!important;border-color:transparent!important}
+html[data-theme]:not([data-theme=festival]) :is(.sidebar,.page-heading,.metrics article,.panel,.giveaway,dialog,#login)::after{content:""!important;display:block!important;position:absolute;inset:-1px;z-index:3;pointer-events:none;box-sizing:border-box;border:var(--frame-width) solid transparent;border-image-source:var(--surface-frame);border-image-slice:80;border-image-width:var(--frame-width);border-image-repeat:stretch;border-radius:inherit;clip-path:none!important;opacity:1!important;background:none!important;box-shadow:none!important;transform:none!important}
+html[data-theme]:not([data-theme=festival]) .page-heading{--frame-width:43px;box-shadow:inset 0 0 65px color-mix(in srgb,var(--theme-deep) 45%,transparent),0 12px 30px #0002!important}
+html[data-theme]:not([data-theme=festival]) .metrics article{--frame-width:23px}
+html[data-theme]:not([data-theme=festival]) .sidebar{--frame-width:19px;background-color:var(--theme-deep)!important}
+html[data-theme]:not([data-theme=festival]) .panel>.section-head{background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 5%,var(--panel)),var(--panel));border-bottom-color:var(--line)}
+html[data-theme=gala] :is(.panel,.metrics article,.giveaway,dialog,.page-heading){border-radius:10px;--surface-fill:#211a11}
+html[data-theme=gala] .sidebar{background-color:#100d08!important}
+html[data-theme=deepsea] :is(.panel,.metrics article,.giveaway,dialog,.page-heading){--surface-fill:#0c2435}
+html[data-theme=aurora] :is(.panel,.metrics article,.giveaway,dialog,.page-heading){--surface-fill:#0c2b26}
+html[data-theme=cyber] :is(.panel,.metrics article,.giveaway,dialog,.page-heading){--surface-fill:#21102f;border-radius:6px}
+html[data-theme=sakura] :is(.panel,.metrics article,.giveaway,dialog,.page-heading){--surface-fill:#fff7fa;border-radius:22px}
+html[data-theme=paper] :is(.panel,.metrics article,.giveaway,dialog,.page-heading){--surface-fill:#faf0db;border-radius:5px}
+html[data-theme=caishen] :is(.panel,.metrics article,.giveaway,dialog,.page-heading){--surface-fill:#4b1319}
+html[data-theme]:not([data-theme=festival]) .sidebar-bottom{background-image:none!important}
+#prizeFolderStatus{color:var(--cyan);font-size:13px}
+[hidden]{display:none!important}
+@media(max-width:700px){html[data-theme]:not([data-theme=festival]) .page-heading{--frame-width:26px}html[data-theme]:not([data-theme=festival]) :is(.panel,.giveaway,dialog){--frame-width:21px}}
+html[data-theme]:not([data-theme=festival]) .sidebar{position:fixed!important}
+html[data-theme]:not([data-theme=festival]) dialog{position:fixed!important}
+html[data-theme]:not([data-theme=festival]) .header-more-menu{position:absolute!important}
+/* Clear dimensions left by the previous corner-stamp pseudo-elements. */
+html[data-theme]:not([data-theme=festival]) :is(.sidebar,.page-heading,.metrics article,.panel,.giveaway,dialog,#login)::after{inset:-1px!important;width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;margin:0!important}
+
+html[data-theme=caishen] :is(.panel,.metrics article,.giveaway,dialog){--surface-fill:#fff2da;--panel:#fff2da;--ink:#801b24;--muted:#9b5946;--theme-deep:#ffefd7;--line:#d2a267;--cyan:#aa1927;--gold:#a86c22;color:#801b24}
+html[data-theme=caishen] .panel>.section-head{background:linear-gradient(180deg,#b62c2e,#8a1723)!important}
+html[data-theme=caishen] .panel>.section-head :is(h2,h3,.eyebrow,.tag){color:#fff0c5!important}
+
+html[data-theme=caishen] :is(.panel,.giveaway,dialog) .primary{background:#a71f2b!important;color:#fff0c5!important;border-color:#d9ac62!important}
+html[data-theme=caishen] :is(.sidebar,.page-heading,.metrics article,.panel,.giveaway,dialog,#login)::after{border-image-repeat:stretch round!important}
+html[data-theme=caishen] .mode-grid .selected,html[data-theme=caishen] .mode-grid .selected *{color:#fff0c5!important}
+html[data-theme=caishen] .mode-grid .selected{background:#a71f2b!important}
+html[data-theme=caishen] .metrics small{color:#80513b!important;opacity:1!important}
+html[data-theme]:not([data-theme=festival]) :is(.sidebar,.page-heading,.metrics article,.panel,.giveaway,dialog,#login)::after{inset:-5px!important}
+/* Illustrated scenes use the same artwork as the live stage; spring is untouched. */
+html[data-theme=deepsea]{--module-illustration:url('/themes/illustration-deepsea-v1.png');--module-tint:rgba(7,26,43,.86);--scene-art:url('/themes/theme-art-deepsea.png');--illustration-fit:contain}
+html[data-theme=gala]{--module-illustration:url('/themes/illustration-gala-v1.png');--module-tint:rgba(27,20,11,.87);--scene-art:url('/themes/theme-art-gala.png');--illustration-fit:contain}
+html[data-theme=aurora]{--module-illustration:url('/themes/theme-art-aurora.png');--module-tint:rgba(6,32,30,.83);--scene-art:url('/themes/theme-art-aurora.png');--illustration-fit:cover}
+html[data-theme=cyber]{--module-illustration:url('/themes/theme-art-cyber.png');--module-tint:rgba(24,9,40,.86);--scene-art:url('/themes/theme-art-cyber.png');--illustration-fit:cover}
+html[data-theme=sakura]{--module-illustration:url('/themes/theme-art-sakura.png');--module-tint:rgba(255,245,250,.88);--scene-art:url('/themes/theme-art-sakura.png');--illustration-fit:cover}
+html[data-theme=paper]{--module-illustration:url('/themes/theme-art-paper.png');--module-tint:rgba(251,241,219,.85);--scene-art:url('/themes/theme-art-paper.png');--illustration-fit:cover}
+html[data-theme=caishen]{--module-illustration:url('/themes/theme-art-caishen.png');--module-tint:rgba(255,240,211,.9);--scene-art:url('/themes/theme-art-caishen.png');--illustration-fit:cover}
+html[data-theme]:not([data-theme=festival]) body{background-image:linear-gradient(var(--module-tint),color-mix(in srgb,var(--bg) 30%,transparent)),var(--scene-art)!important;background-size:100% 100%,cover!important;background-position:center!important;background-attachment:fixed!important}
+html[data-theme]:not([data-theme=festival]) #dash,html[data-theme]:not([data-theme=festival]) .workspace{background:transparent!important}
+html[data-theme]:not([data-theme=festival]) :is(.sidebar,.page-heading,.metrics article,.panel,.giveaway,dialog,#login){background-image:linear-gradient(var(--module-tint),var(--module-tint)),var(--scene-art)!important;background-size:100% 100%,cover!important;background-position:center,right bottom!important}
+html[data-theme]:not([data-theme=festival]) #dash .page-heading::before{content:""!important;display:block!important;position:absolute!important;inset:14px 2% 14px auto!important;width:47%!important;height:auto!important;max-width:none!important;z-index:-1;pointer-events:none;background:var(--module-illustration) center/var(--illustration-fit) no-repeat!important;mask-image:linear-gradient(90deg,transparent,#000 18%,#000 92%,transparent),linear-gradient(0deg,transparent,#000 12%,#000 90%,transparent);mask-composite:intersect;opacity:1!important;transform:none!important;box-shadow:none!important}
+html[data-theme]:not([data-theme=festival]) .page-heading .hero-scene,html[data-theme]:not([data-theme=festival]) .page-heading .hero-art-side{display:none!important}
+html[data-theme]:not([data-theme=festival]) #dash .metrics article::before{content:""!important;display:block!important;position:absolute;inset:13px 13px 13px auto;width:37%;height:auto;z-index:-1;pointer-events:none;background-image:var(--module-illustration);background-size:cover;background-repeat:no-repeat;mask-image:linear-gradient(90deg,transparent,#000 25%,#000 95%,transparent);opacity:.94}
+html[data-theme]:not([data-theme=festival]) .metrics article:nth-child(1)::before{background-position:right top}
+html[data-theme]:not([data-theme=festival]) .metrics article:nth-child(2)::before{background-position:left center}
+html[data-theme]:not([data-theme=festival]) .metrics article:nth-child(3)::before{background-position:center bottom}
+html[data-theme=gala] #dash .metrics article::before,html[data-theme=deepsea] #dash .metrics article::before{background-size:190% auto}
+html[data-theme]:not([data-theme=festival]) #dash .sidebar{background-image:linear-gradient(180deg,color-mix(in srgb,var(--theme-deep) 96%,transparent) 0%,color-mix(in srgb,var(--theme-deep) 90%,transparent) 35%,color-mix(in srgb,var(--theme-deep) 30%,transparent)),var(--scene-art)!important;background-size:100% 100%,auto 100%!important;background-position:center,65% center!important}
+html[data-theme]:not([data-theme=festival]) #dash .sidebar::before{content:"";position:absolute;inset:auto 12px 65px;width:calc(100% - 24px);height:34%;pointer-events:none;z-index:-1;background:var(--module-illustration) center bottom/contain no-repeat;mask-image:linear-gradient(0deg,#000 65%,transparent);opacity:.75}
+html[data-theme]:not([data-theme=festival]) #create::before{content:"";display:block!important;position:absolute;right:15px;bottom:100px;width:46%;height:35%;max-height:380px;z-index:-1;pointer-events:none;background:var(--module-illustration) right bottom/var(--illustration-fit) no-repeat;mask-image:linear-gradient(0deg,#000 65%,transparent);opacity:.28}
+html[data-theme=caishen] #dash .page-heading{background-image:linear-gradient(90deg,#59121ce8,#59121c99),var(--scene-art)!important}
+@media(max-width:700px){html[data-theme]:not([data-theme=festival]) #dash .page-heading::before{width:54%!important;opacity:.55!important}html[data-theme]:not([data-theme=festival]) #create::before{opacity:.16}}
+html[data-theme]:not([data-theme=festival]) #dash .sidebar::before{bottom:155px;height:30%}
+/* Quiet material foundations. Decorative objects are assigned by layout role. */
+html[data-theme=deepsea]{--page-top:#07131f;--page-bottom:#102c3e;--surface-fill:#102637}
+html[data-theme=gala]{--page-top:#100d09;--page-bottom:#302517;--surface-fill:#231c13}
+html[data-theme=aurora]{--page-top:#081c18;--page-bottom:#204538;--surface-fill:#102e25}
+html[data-theme=cyber]{--page-top:#130c21;--page-bottom:#2b1742;--surface-fill:#241437}
+html[data-theme=sakura]{--page-top:#fff3f7;--page-bottom:#f0dce7;--surface-fill:#fff8fc}
+html[data-theme=paper]{--page-top:#f8f2e5;--page-bottom:#e7ddc8;--surface-fill:#fcf6e9}
+html[data-theme=caishen]{--page-top:#4b131b;--page-bottom:#8a3034;--surface-fill:#fff2da}
+html[data-theme]:not([data-theme=festival]) body{background-image:radial-gradient(ellipse at 75% 0,color-mix(in srgb,var(--gold) 8%,transparent),transparent 58%),linear-gradient(145deg,var(--page-top),var(--page-bottom))!important;background-size:cover!important;background-attachment:fixed!important}
+html[data-theme]:not([data-theme=festival]) :is(.sidebar,.page-heading,.metrics article,.panel,.giveaway,dialog,#login){background-image:linear-gradient(135deg,color-mix(in srgb,var(--surface-fill) 95%,white),var(--surface-fill))!important;background-size:100% 100%!important}
+html[data-theme]:not([data-theme=festival]) #dash .sidebar{background-image:linear-gradient(160deg,var(--page-top),var(--page-bottom))!important;background-size:100% 100%!important}
+html[data-theme=caishen] #dash .page-heading{--surface-fill:#591922;background-image:linear-gradient(135deg,#6f2029,#451019)!important}
+html[data-theme]:not([data-theme=festival]) #dash :is(.page-heading,.metrics article,.sidebar,#create)::before{display:none!important;background-image:none!important}
+html[data-theme]:not([data-theme=festival]) #dash .page-heading>.hero-character{display:none!important}
+.theme-decor{position:absolute!important;display:block;overflow:hidden!important;pointer-events:none!important;z-index:-1!important;max-width:none!important;max-height:none!important;opacity:.94}
+.theme-decor[hidden]{display:none!important}
+.theme-decor img{position:absolute!important;display:block!important;max-width:none!important;max-height:none!important;object-fit:fill!important;opacity:1!important;border:0!important;margin:0!important;transform:none!important}
+.theme-decor-sidebar{opacity:.78;mask-image:linear-gradient(0deg,#000 80%,transparent)}
+.theme-decor-form{opacity:.22;mask-image:linear-gradient(0deg,#000 75%,transparent)}
+.theme-decor-hero{mask-image:linear-gradient(90deg,transparent,#000 6%,#000 97%,transparent)}
+@media(max-width:700px){.theme-decor-hero{opacity:.65}.theme-decor-form{opacity:.14}}

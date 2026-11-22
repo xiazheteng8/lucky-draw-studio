@@ -90,3 +90,4 @@
   font-size: 22rpx;
   color: #557285;
 }
+.footer{color:#bed0df}.subtitle,.scan-tip{color:#c3d3e3}

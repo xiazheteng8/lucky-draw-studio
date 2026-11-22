@@ -3,6 +3,7 @@ const app = getApp();
 Page({
   data: {
     id: null,
+    site: 'legacy',
     token: '',
     themeClass: 'theme-deepsea',
     myName: '',
@@ -25,7 +26,7 @@ Page({
     const myName = options.name ? decodeURIComponent(options.name) : (app.globalData.myCheckin?.name || '我');
     const myAvatar = app.globalData.myCheckin?.avatar || wx.getStorageSync('wx_avatar_base64') || '';
     
-    this.setData({ id, token, myName, myAvatar });
+    this.setData({ id, token, site: options.site || app.globalData.site, myName, myAvatar });
     this.checkStatus();
     this.data.pollTimer = setInterval(() => {
       this.checkStatus();
@@ -39,7 +40,7 @@ Page({
   checkStatus() {
     if (!this.data.id) return;
     wx.request({
-      url: `${app.globalData.serverUrl}/api/miniapp/campaign/${this.data.id}?token=${this.data.token}`,
+      url: app.apiUrl(this.data.site, `/api/miniapp/campaign/${this.data.id}?token=${encodeURIComponent(this.data.token)}`),
       method: 'GET',
       success: (res) => {
         if (res.statusCode === 200 && res.data) {
@@ -81,7 +82,7 @@ Page({
 
     if (this.data.id) {
       wx.request({
-        url: `${app.globalData.serverUrl}/api/interact/${this.data.id}?token=${this.data.token}`,
+        url: app.apiUrl(this.data.site, `/api/interact/${this.data.id}?token=${encodeURIComponent(this.data.token)}`),
         method: 'POST',
         data: { kind: 'like', viewer: app.getViewerId(), name: this.data.nickName || this.data.myName || '微信观众' },
         header: { 'content-type': 'application/json' }

@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {accountRoutes} from './accounts.js';
 import {openDb,one,all,run,transaction} from './db.js';
-const cf=await import(new URL('../../lottery-pages/cloudflare/accounts.js',import.meta.url));
+const cf=await import(new URL('../../../cloudflare/youtube-giveaway-studio/cloudflare/accounts.js',import.meta.url));
 const password='security-test-password';
 const csrfToken=()=>crypto.randomBytes(32).toString('hex');
 async function localFixture(){
@@ -53,4 +53,3 @@ for(const runtime of ['local','cloudflare'])test(runtime+': Telegram replay cann
  }finally{await f.close?.()}
 });
 export {localFixture,cfFixture};
-

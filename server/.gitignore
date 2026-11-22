@@ -1,12 +1,5 @@
 node_modules/
 data/
 .env
-*.sqlite
-*.sqlite-*
+.env.production
 *.zip
-coverage/
-.dev.vars
-.dev.vars.*
-!.dev.vars.example
-.wrangler/
-pages-dist/

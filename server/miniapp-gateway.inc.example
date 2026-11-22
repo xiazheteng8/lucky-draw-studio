@@ -1,0 +1,35 @@
+# Include inside the HTTPS server for the Mini Program gateway.
+location ~ "^/miniapp-gateway/(?<lucky_site>legacy|cn|cf)(?<lucky_path>/api/(?:miniapp/(?:login|gift-policy|(?:campaign|checkin|blessing|like|gifts)/[0-9]{1,16})|interact/[0-9]{1,16}))$" {
+    access_log off;
+    client_max_body_size 128k;
+    resolver 127.0.0.11 valid=20s ipv6=off;
+    set $lucky_gateway_origin http://lucky-tanzhe-studio:3000;
+    set $lucky_gateway_host lucky.tanzhe.top;
+    if ($lucky_site = legacy) {
+        set $lucky_gateway_origin https://lucky.xiazheteng.fun;
+        set $lucky_gateway_host lucky.xiazheteng.fun;
+    }
+    if ($lucky_site = cf) {
+        set $lucky_gateway_origin https://lucky-37k.pages.dev;
+        set $lucky_gateway_host lucky-37k.pages.dev;
+    }
+    proxy_ssl_server_name on;
+    proxy_ssl_name $lucky_gateway_host;
+    proxy_ssl_verify on;
+    proxy_ssl_verify_depth 4;
+    proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 25s;
+    proxy_pass_request_headers off;
+    proxy_set_header Host $lucky_gateway_host;
+    proxy_set_header Content-Type $http_content_type;
+    proxy_set_header Authorization $http_authorization;
+    proxy_set_header User-Agent $http_user_agent;
+    proxy_set_header X-Miniapp $http_x_miniapp;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_hide_header Set-Cookie;
+    proxy_redirect off;
+    proxy_pass $lucky_gateway_origin$lucky_path$is_args$args;
+}
+location /miniapp-gateway/ { return 404; }

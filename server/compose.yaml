@@ -1,11 +1,19 @@
 services:
   studio:
     build: .
+    image: lucky-studio:local
     restart: unless-stopped
-    env_file: .env
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:${HOST_PORT:-3010}:3000"
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+      SETTINGS_ENV_PATH: /app/data/settings.env
+      WECHAT_ENV_VERSION: ${WECHAT_ENV_VERSION:-release}
     volumes:
-      - studio-data:/app/data
-volumes:
-  studio-data:
+      - ./data:/app/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -6,7 +6,7 @@
     <view class="waiting-desc">好运正在酝酿，请留意现场大屏开奖！</view>
 
     <view class="card my-card">
-      <image class="my-avatar" src="{{ myAvatar || 'https://lucky.xiazheteng.fun/default-logo.jpg' }}" mode="aspectFill" />
+      <image class="my-avatar" src="{{ myAvatar || '/assets/default-logo.jpg' }}" mode="aspectFill" />
       <view class="my-name">{{ myName }}</view>
       <view class="my-status">● 抽奖资格已锁定</view>
     </view>

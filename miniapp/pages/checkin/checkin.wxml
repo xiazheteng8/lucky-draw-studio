@@ -22,28 +22,40 @@
     <!-- 场景B：扫码后直接进入活动主页面 -->
     <view class="campaign-header">
       <!-- 活动图标：默认瞎折腾Logo，扫码识别后换成活动自定义图标 -->
-      <image class="activity-logo" src="{{ activityLogo }}" mode="aspectFill" />
+      <image class="activity-logo" src="{{ activityLogo }}" mode="aspectFill" binderror="onActivityLogoError" />
       <view class="badge">{{ campaign.open ? '● 现场进行中' : '● 报名已截止' }}</view>
       <view class="campaign-title">{{ campaign.title || '载入活动中...' }}</view>
       <view class="count-tag">大屏已汇聚 {{ campaign.checkinCount || 0 }} 位参与者</view>
     </view>
 
-    <!-- 微信自动识别身份区（直接自动识别，无手动输入框，无需手动点击） -->
-    <view class="card user-badge-card">
+    <view wx:if="{{ loadError }}" class="card">
+      <text>{{ loadError }}</text>
+      <button class="btn-primary" bindtap="retryCampaign">立即重试</button>
+    </view>
+    
+    <!-- 报名成功后展示的身份卡片 -->
+    <view wx:elif="{{ checkedIn }}" class="card user-badge-card">
       <view class="user-badge-inner">
-        <image class="user-avatar-img" src="{{ avatarUrl || defaultAvatar }}" mode="aspectFill" />
+        <image class="user-avatar-img" src="{{ avatarUrl }}" mode="aspectFill" />
         <view class="user-badge-info">
           <view class="user-name-row">
             <text class="user-name-text">{{ nickName }}</text>
-            <text class="user-check-icon">✓ 已自动识别</text>
+            <text class="user-check-icon">✓ 已报名签到</text>
           </view>
-          <view class="user-status-desc">{{ checkedIn ? '已成功登上大屏 · 拥有抽奖资格' : '正在自动载入抽奖资格...' }}</view>
+          <view class="user-status-desc">头像昵称已汇聚现场大屏，等待大屏抽奖</view>
         </view>
       </view>
     </view>
 
+    <!-- 若关闭了弹窗，主界面显示报名入口卡片 -->
+    <view wx:elif="{{ campaign.id && campaign.open && profileGuideClosed }}" class="card">
+      <view class="section-title">使用微信报名</view>
+      <view class="profile-guide-tip">使用微信头像和昵称报名参与现场互动与抽奖。</view>
+      <button class="btn-primary" bindtap="openProfileGuide">使用微信报名</button>
+    </view>
+
     <!-- 现场互动留言 / 祝福评论区 -->
-    <view class="card interactive-card">
+    <view wx:if="{{ checkedIn || profileGuideClosed }}" class="card interactive-card">
       <view class="section-title-row">
         <text class="section-title">现场留言 · 祝福评论</text>
         <text class="section-sub">发往现场大屏幕</text>
@@ -51,29 +63,45 @@
 
       <!-- 快速祝福快捷标签 -->
       <view class="quick-tags">
-        <text class="tag-item" bindtap="fillQuickTag" data-text="新春大吉，大展宏图！">🧨 新春大吉</text>
-        <text class="tag-item" bindtap="fillQuickTag" data-text="恭喜发财，好运连连！">💰 恭喜发财</text>
-        <text class="tag-item" bindtap="fillQuickTag" data-text="今晚锦鲤必是我！">🎉 锦鲤附体</text>
-        <text class="tag-item" bindtap="fillQuickTag" data-text="迎春接福发大财！">🧧 财运亨通</text>
+        <text wx:for="{{quickBlessings}}" wx:key="label" class="tag-item" bindtap="fillQuickTag" data-text="{{item.text}}">{{item.label}}</text>
       </view>
 
-      <textarea class="blessing-textarea" placeholder="写一句祝福、留言或弹幕，发往现场大屏幕..." value="{{ blessing }}" bindinput="onBlessingInput" maxlength="100" />
+      <textarea class="blessing-textarea" placeholder="写一句祝福、留言或弹幕，发往现场大屏幕..." value="{{ blessing }}" bindfocus="onBlessingFocus" bindinput="onBlessingInput" maxlength="100" />
 
       <!-- 底部互动操作：送爱心与发送留言 -->
       <view class="action-footer">
         <button class="heart-btn {{ heartPulsing ? 'pulse' : '' }}" bindtap="tapHeart">
           <text class="heart-icon">♥</text> 送爱心 <text class="likes-badge">{{ likesCount }}</text>
         </button>
-        <button class="btn-primary send-msg-btn" loading="{{ submitting }}" bindtap="sendBlessingMessage">
-          🚀 发送留言上大屏
+        <button class="btn-primary send-msg-btn" loading="{{ submitting }}" disabled="{{ submitting || loadError || !campaign.id || commentRemaining > 0 }}" bindtap="sendBlessingMessage">
+          {{commentRemaining > 0 ? '请等待 '+commentRemaining+' 秒' : '🚀 发送留言上大屏'}}
         </button>
       </view>
     </view>
 
+    <view wx:if="{{ campaign.open }}" class="card gift-card">
+      <view class="section-title">送上心意 · 免费互动</view>
+      <view class="gift-grid">
+        <button wx:if="{{ gifts.flower.enabled }}" class="gift-button" data-gift="flower" bindtap="sendGift" loading="{{ giftBusy === 'flower' }}" disabled="{{ giftBusy || gifts.flower.remaining === 0 }}">
+          <text class="gift-emoji">🌷</text><text>鲜花</text>
+          <text class="gift-hint">{{ gifts.flower.remaining === null ? '不限次数' : gifts.flower.remaining === 0 ? '本场已送完' : '本场还可送 ' + gifts.flower.remaining + ' 次' }}</text>
+        </button>
+        <button wx:if="{{ gifts.rocket.enabled }}" class="gift-button" data-gift="rocket" bindtap="sendGift" loading="{{ giftBusy === 'rocket' }}" disabled="{{ giftBusy || gifts.rocket.remaining === 0 }}">
+          <text class="gift-emoji">🚀</text><text>火箭</text>
+          <text class="gift-hint">{{ gifts.rocket.remaining === null ? '不限次数' : gifts.rocket.remaining === 0 ? '本场已送完' : '本场还可送 ' + gifts.rocket.remaining + ' 次' }}</text>
+        </button>
+        <button wx:if="{{ gifts.car.enabled }}" class="gift-button" data-gift="car" bindtap="sendGift" loading="{{ giftBusy === 'car' }}" disabled="{{ giftBusy || gifts.car.remaining === 0 }}">
+          <text class="gift-emoji">🏎</text><text>跑车</text>
+          <text class="gift-hint">{{ gifts.car.remaining === null ? '不限次数' : gifts.car.remaining === 0 ? '本场已送完' : '本场还可送 ' + gifts.car.remaining + ' 次' }}</text>
+        </button>
+      </view>
+      <view class="gift-hint">赠送次数按每人、每个活动单独计算，以站长设置为准。</view>
+    </view>
+
     <!-- 中奖与开奖状态实时提示卡片 -->
     <view wx:if="{{ campaign.isDrawn }}" class="card result-card {{ isWinner ? 'winner-box' : '' }}">
+      <view class="trophy-icon">🏆</view>
       <view wx:if="{{ isWinner }}" class="winner-inner">
-        <view class="trophy-icon">🏆</view>
         <view class="winner-title">恭喜您中奖啦！</view>
         <view class="prize-tag">{{ winnerPrize || '中奖幸运儿' }}</view>
         <view class="winner-tip">请关注现场大屏幕并联系工作人员领奖</view>
@@ -81,6 +109,64 @@
       <view wx:else class="not-winner-inner">
         <view class="lottery-done-title">本轮抽奖已揭晓</view>
         <view class="lottery-done-tip">感谢您的热情参与，送上真挚祝福！</view>
+      </view>
+    </view>
+
+    <!-- 扫码直接弹窗引导型授权：老版弹窗效果 + 三步递进 + 主题与最新小程序一致 -->
+    <view wx:if="{{ campaign.id && campaign.open && !checkedIn && !profileGuideClosed }}" class="profile-guide" role="dialog" catchtouchmove="noop">
+      <view class="profile-guide-card">
+        <view class="guide-card-head">
+          <text class="guide-card-step-tag">{{ !privacyAccepted ? '第 1 步 / 共 3 步' : (!avatarUrl ? '第 2 步 / 共 3 步' : '第 3 步 / 共 3 步') }}</text>
+          <button class="guide-close-btn" bindtap="closeProfileGuide">×</button>
+        </view>
+
+        <!-- 弹窗一：隐私条款同意 -->
+        <block wx:if="{{ !privacyAccepted }}">
+          <view class="section-title">第一步：同意隐私条款</view>
+          <view class="profile-guide-tip">为了提供现场互动抽奖和大屏展示服务，我们需要在您同意后使用微信头像、昵称及互动数据。</view>
+          <view class="privacy-contract-link" bindtap="openPrivacy">阅读《{{ privacyContractName }}》</view>
+          <button class="btn-primary guide-action-btn" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="agreePrivacyStep" bindtap="agreePrivacyStep">
+            同意并继续
+          </button>
+        </block>
+
+        <!-- 弹窗二：选微信头像（只有一个按钮，头像旁边显示使用微信头像，无确认键） -->
+        <block wx:elif="{{ !avatarUrl }}">
+          <view class="section-title">第二步：选择微信头像</view>
+          <view class="profile-guide-tip">点下方按钮，微信会打开头像选择器。选好的头像会显示在活动大屏。</view>
+          <button class="btn-primary guide-action-btn btn-avatar-row" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+            <image class="guide-avatar-circle" src="{{ defaultAvatar }}" mode="aspectFill" />
+            <text class="btn-avatar-text">使用微信头像</text>
+          </button>
+        </block>
+
+        <!-- 弹窗三：选用微信昵称（提示使用微信昵称，方框显示点此选用微信昵称，授权后确认报名） -->
+        <form wx:else bindsubmit="submitCheckin">
+          <view class="section-title">第三步：使用微信昵称</view>
+          <view class="profile-guide-tip">点昵称栏，在键盘上方点击微信推荐的昵称，即可带入，无需手打。</view>
+          
+          <view class="nickname-row-wrap">
+            <image class="guide-avatar-circle" src="{{ avatarUrl }}" mode="aspectFill" />
+            <input
+              class="nickname-input"
+              name="nickname"
+              type="nickname"
+              value="{{ nickName }}"
+              placeholder="点此选用微信昵称"
+              placeholder-class="nickname-placeholder"
+              maxlength="50"
+              bindinput="onNicknameInput"
+              bindblur="onNicknameInput"
+              disabled="{{ checkingIn }}"
+            />
+          </view>
+          
+          <button class="btn-primary guide-action-btn checkin-submit" form-type="submit" loading="{{ checkingIn }}" disabled="{{ checkingIn || !nicknameReady }}">
+            {{ checkingIn ? '正在报名…' : '确认报名' }}
+          </button>
+          
+          <view class="change-avatar-link" bindtap="rechooseAvatar">‹ 更换头像</view>
+        </form>
       </view>
     </view>
   </block>

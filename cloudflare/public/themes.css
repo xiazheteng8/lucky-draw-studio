@@ -19,5 +19,3 @@ html[data-theme="festival"] .sidebar{background:#a81824 url('/themes/cny-sidebar
 @keyframes money-in-wallet{0%{opacity:1;transform:translate(-50%,-70px) rotate(-12deg)}70%{opacity:1;transform:translate(-50%,100px) rotate(0)}100%{opacity:0;transform:translate(-50%,150px)}}@keyframes seal-wallet{0%,60%{transform:rotateX(110deg)}100%{transform:rotateX(0)}}@keyframes newyear-bow{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(5px) rotate(2deg)}}@keyframes qr-reveal{from{opacity:0}to{opacity:1}}@media(prefers-reduced-motion:reduce){.spring-unlock *{animation:none!important}}
 
 html[data-theme="festival"] .page-heading>div,html[data-theme="caishen"] .page-heading>div{visibility:hidden}.page-heading>#apiButton{display:none}.panel>details{margin-top:20px;padding:16px;border:1px solid var(--line);border-radius:12px}.panel>details>summary{cursor:pointer;font-weight:600}.panel>details[open]>summary{margin-bottom:16px}@media(min-width:1051px) and (max-width:1350px){.mode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-
-.theme-mini{width:100%;height:auto;aspect-ratio:3.3/1;object-fit:cover}.theme-mini::before,.theme-mini::after{content:none}

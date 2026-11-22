@@ -1,60 +1,26 @@
+const GATEWAY_URL = 'https://lucky.tanzhe.top';
+
 // app.js - 瞎折腾摇奖吧小程序全局配置
-function parseScanQuery(options = {}) {
-  let id = options.id || null;
-  let token = options.token || '';
-  let serverUrl = null;
+// Support previously printed ordinary URL QR codes.
+const QR_HOSTS = new Map([['lucky.xiazheteng.fun', 'legacy'], ['lucky.tanzhe.top', 'cn'], ['lucky-37k.pages.dev', 'cf']]);
 
-  // 1. 微信普通链接二维码扫描进入 (options.q)
-  if (options.q) {
-    try {
-      const decodedUrl = decodeURIComponent(options.q);
-      console.log('[App] 微信扫一扫解码 URL:', decodedUrl);
-      const urlMatch = decodedUrl.match(/^(https?:\/\/[^\/?#]+)/i);
-      if (urlMatch) {
-        serverUrl = urlMatch[1];
-      }
-      const qIndex = decodedUrl.indexOf('?');
-      if (qIndex !== -1) {
-        const queryStr = decodedUrl.substring(qIndex + 1);
-        const pairs = queryStr.split('&');
-        for (const pair of pairs) {
-          const [k, v] = pair.split('=');
-          if (k === 'id') id = decodeURIComponent(v || '');
-          if (k === 'token') token = decodeURIComponent(v || '');
-        }
-      }
-    } catch (e) {
-      console.error('[App] 解析 options.q 失败:', e);
-    }
-  }
-
-  // 2. 微信小程序码扫描进入 (options.scene)
-  if (options.scene && !id) {
-    try {
-      const decodedScene = decodeURIComponent(options.scene);
-      console.log('[App] 微信小程序码 scene:', decodedScene);
-      if (decodedScene.includes('=')) {
-        const pairs = decodedScene.split('&');
-        for (const pair of pairs) {
-          const [k, v] = pair.split('=');
-          if (k === 'id') id = decodeURIComponent(v || '');
-          if (k === 'token') token = decodeURIComponent(v || '');
-        }
-      } else {
-        id = decodedScene;
-      }
-    } catch (e) {
-      console.error('[App] 解析 scene 失败:', e);
-    }
-  }
-
-  return { id, token, serverUrl };
+function parseScanQuery(input = {}) {
+  const options=input.query&&typeof input.query==='object'?input.query:input;
+  let id=options.id||null,token=String(options.token||''),site=String(options.site||''),invalid=false,nativePath=false;
+  const decode=value=>{let text=String(value||'');for(let i=0;i<3;i++){try{const next=decodeURIComponent(text);if(next===text)break;text=next}catch{break}}return text};
+  function params(value,depth=0){if(depth>3)return;const text=decode(value).replace(/^\?/,'').split('#')[0];if(text.length>4096)return;if(/^\d{1,16}$/.test(text)){id=text;return}for(const pair of text.split('&')){const at=pair.indexOf('=');if(at<0)continue;const key=pair.slice(0,at),v=decode(pair.slice(at+1));if(key==='id')id=v;else if(key==='token')token=v;else if(key==='site')site=v;else if(key==='scene')params(v,depth+1)}}
+  function path(value){const text=decode(value);if(!/^\/?pages\/(?:checkin\/checkin|index\/index)(?:\?|$)/.test(text))return false;const at=text.indexOf('?');if(at>=0)params(text.slice(at+1));return true}
+  // wx.scanCode returns the Mini Program's navigation path separately from result.
+  if(typeof options.path==='string')nativePath=path(options.path);
+  if(typeof options.scene==='string')params(options.scene);
+  if(!nativePath){const raw=options.q||options.result;if(typeof raw==='string'&&raw){const text=decode(raw),match=/^https?:\/\/([^/?#]+)(?:[/?#]|$)/i.exec(text);if(match){const mapped=QR_HOSTS.get(match[1].toLowerCase());if(!mapped)invalid=true;else{site=site||mapped;const at=text.indexOf('?');if(at>=0)params(text.slice(at+1))}}else if(!path(text)){if(!options.q&&/^(?:id=|\d{1,16}$)/.test(text))params(text);else invalid=true}}}
+  const target=site||'legacy';
+  return {id:!invalid&&/^\d{1,16}$/.test(String(id))&&['legacy','cn','cf'].includes(target)?String(id):null,token,site:target};
 }
 
 App({
   globalData: {
-    // 默认活动服务器地址，扫码如果包含服务器地址将自动切换
-    serverUrl: 'https://lucky.xiazheteng.fun',
+    site: 'legacy',
     openid: null,
     userInfo: null,
     campaignId: null,
@@ -64,18 +30,18 @@ App({
 
   parseScanQuery,
 
+  apiUrl(site, path) {
+    return GATEWAY_URL + '/miniapp-gateway/' + encodeURIComponent(site) + path;
+  },
+
   onLaunch(options) {
-    console.log('[摇奖吧] 小程序启动, 参数:', options);
     this.handleLaunchOptions(options);
 
     const cachedOpenid = wx.getStorageSync('wx_openid');
-    if (cachedOpenid) {
+    if (cachedOpenid && !/^wx_(dev|mock)_/.test(cachedOpenid)) {
       this.globalData.openid = cachedOpenid;
     }
-    const cachedServer = wx.getStorageSync('custom_server_url');
-    if (cachedServer) {
-      this.globalData.serverUrl = cachedServer;
-    }
+    wx.removeStorageSync('custom_server_url');
   },
 
   onShow(options) {
@@ -90,10 +56,7 @@ App({
       this.globalData.campaignId = parsed.id;
       this.globalData.token = parsed.token || '';
     }
-    if (parsed.serverUrl) {
-      this.globalData.serverUrl = parsed.serverUrl;
-      wx.setStorageSync('custom_server_url', parsed.serverUrl);
-    }
+    if (parsed.id) this.globalData.site = parsed.site;
   },
 
   getViewerId() {
@@ -102,42 +65,15 @@ App({
     return id;
   },
 
-  // 微信快捷登录换取 openid
-  getOpenId() {
-    return new Promise((resolve, reject) => {
-      if (this.globalData.openid) {
-        return resolve(this.globalData.openid);
-      }
-      wx.login({
-        success: (res) => {
-          if (!res.code) {
-            return reject(new Error('微信登录失败，未获取到临时 code'));
-          }
-          wx.request({
-            url: this.globalData.serverUrl + '/api/miniapp/login',
-            method: 'POST',
-            data: { code: res.code },
-            header: { 'content-type': 'application/json' },
-            success: (loginRes) => {
-              if (loginRes.statusCode === 200 && loginRes.data?.openid) {
-                this.globalData.openid = loginRes.data.openid;
-                wx.setStorageSync('wx_openid', loginRes.data.openid);
-                resolve(loginRes.data.openid);
-              } else {
-                const fallbackId = 'wx_dev_' + Math.random().toString(36).substring(2, 10);
-                this.globalData.openid = fallbackId;
-                resolve(fallbackId);
-              }
-            },
-            fail: () => {
-              const fallbackId = 'wx_dev_' + Math.random().toString(36).substring(2, 10);
-              this.globalData.openid = fallbackId;
-              resolve(fallbackId);
-            }
-          });
-        },
-        fail: (err) => reject(err)
-      });
-    });
-  }
+  async getMiniappSession(site = this.globalData.site, force = false) {
+    const key='miniapp_session_v2_'+site,cached=wx.getStorageSync(key);
+    if(!force&&cached?.loginToken&&cached.expiresAt>Date.now()+60000)return cached;
+    this._loginTasks=this._loginTasks||{};if(this._loginTasks[site]&&!force)return this._loginTasks[site];
+    const task=(async()=>{const login=await new Promise((resolve,reject)=>wx.login({success:resolve,fail:reject}));if(!login.code)throw Error('微信登录失败，请重试');
+      const result=await new Promise((resolve,reject)=>wx.request({url:this.apiUrl(site,'/api/miniapp/login'),method:'POST',data:{code:login.code},success:resolve,fail:reject}));
+      if(result.statusCode!==200||!result.data?.openid||!result.data?.loginToken)throw Error(result.data?.error||'微信登录失败，请重试');
+      const session={openid:result.data.openid,loginToken:result.data.loginToken,expiresAt:result.data.expiresAt};wx.setStorageSync(key,session);this.globalData.openid=session.openid;return session;
+    })();this._loginTasks[site]=task;try{return await task}finally{delete this._loginTasks[site]}
+  },
+  async getOpenId(){return (await this.getMiniappSession()).openid;}
 });

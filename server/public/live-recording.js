@@ -3,57 +3,281 @@ const DB_NAME='lucky-live-recordings', CHANNEL='lucky-live-recordings';
 let database;
 function db(){return database??=new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{r.result.createObjectStore('sessions',{keyPath:'key'});r.result.createObjectStore('chunks',{keyPath:['session','index']})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
 async function store(name,mode,fn){const d=await db();return new Promise((resolve,reject)=>{const tx=d.transaction(name,mode),request=fn(tx.objectStore(name));tx.oncomplete=()=>resolve(request?.result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('录像保存失败'))})}
-export async function listRecordings(activityId){const rows=await store('sessions','readonly',s=>s.getAll());return rows.filter(s=>s.activityId===String(activityId)).sort((a,b)=>b.startedAt-a.startedAt)}
-export async function readRecording(key){const meta=await store('sessions','readonly',s=>s.get(key));if(!meta)throw Error('本浏览器没有这份现场录像');const chunks=await store('chunks','readonly',s=>s.getAll(IDBKeyRange.bound([key,0],[key,Number.MAX_SAFE_INTEGER])));if(!chunks.length)throw Error('录像尚未保存任何画面');return {meta,blob:new Blob(chunks.map(c=>c.blob),{type:meta.mimeType})}}
-export async function finishRecording(key){const channel=new BroadcastChannel(CHANNEL);channel.postMessage({type:'stop',key});try{const deadline=Date.now()+10000;while(Date.now()<deadline){const meta=await store('sessions','readonly',s=>s.get(key));if(!meta?.active)return;await new Promise(r=>setTimeout(r,150))}throw Error('现场录制尚未结束，请回大屏停止录制后再导出')}finally{channel.close()}}
-export function recordingStartSeconds(meta,minutes){if(minutes===null)return 0;if(!Number.isFinite(minutes)||minutes<0)throw Error('开奖前保留分钟数必须大于或等于 0');if(!Number.isFinite(meta.drawAt))throw Error('这份录像没有记录到开奖时间，无法按开奖时间裁剪');return Math.max(0,(meta.drawAt-meta.startedAt)/1000-minutes*60)}
+function chunkRange(key){return IDBKeyRange.bound([key],[key,[]])}
+export async function listRecordings(activityId){const rows=(await store('sessions','readonly',s=>s.getAll())).filter(s=>s.activityId===String(activityId)).sort((a,b)=>b.startedAt-a.startedAt);return Promise.all(rows.map(async meta=>{const actual=await store('chunks','readonly',s=>s.count(chunkRange(meta.key)));return {...meta,reportedChunkCount:meta.chunkCount,storedChunkCount:actual,chunkCount:actual}}))}
+export async function readRecording(key){const meta=await store('sessions','readonly',s=>s.get(key));if(!meta)throw Error('本浏览器没有这份现场录像');const chunks=(await store('chunks','readonly',s=>s.getAll(chunkRange(key)))).filter(c=>c.blob instanceof Blob&&c.blob.size>0).sort((a,b)=>Number(a.index)-Number(b.index));if(!chunks.length){const error=Error('该片段只有录制记录，没有已保存的视频画面');error.code='EMPTY_RECORDING';throw error}return {meta,blob:new Blob(chunks.map(c=>c.blob),{type:meta.mimeType||chunks[0].blob.type||'video/webm'})}}
+export function recordingDuration(meta) {
+  return Math.max(0, ((meta.endedAt || meta.updatedAt || meta.startedAt) - meta.startedAt) / 1000);
+}
 
-// Call once from overlay.js: attachLiveRecording(stage,music,()=>data,id).
-// Starts on page load and keeps recording the post-show until Stop is clicked.
+export function mp4MimeType() {
+  const types = ['video/mp4;codecs=avc1.42001f,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4'];
+  const type = types.find(value => globalThis.MediaRecorder?.isTypeSupported(value));
+  if (!type) throw Error('当前浏览器不支持 MP4 编码，请更新 Chrome、Edge 或 Safari 后导出');
+  return type;
+}
+
+
+
+export function planRecordingClips(rows,mode,drawAt){
+ const clips=[];
+ let through=-Infinity;
+ for(const meta of [...rows].sort((a,b)=>a.startedAt-b.startedAt)){
+  if(!Number.isFinite(meta.startedAt)||(!meta.chunkCount&&meta.chunkCount!==undefined))continue;
+  const duration=Number.isFinite(meta.savedSeconds)?meta.savedSeconds:recordingDuration(meta);
+  const start=Math.max(0,(through-meta.startedAt)/1000);
+  if(duration<=start)continue;
+  const legacyDraw=Number.isFinite(meta.drawAt)?meta.drawAt:drawAt;
+  const split=meta.recordingVersion===2?(Number.isFinite(meta.drawOffset)?meta.drawOffset:Infinity):
+   meta.preDrawCaptured===false?0:Number.isFinite(legacyDraw)?(legacyDraw-meta.startedAt)/1000:Infinity;
+  const from=mode==='draw'?Math.max(start,split):start;
+  const to=mode==='waiting'?Math.min(duration,split):duration;
+  if(to>from){
+   clips.push({key:meta.key,from,to});
+   through=meta.startedAt+to*1000;
+  }
+ }
+ return clips;
+}
+
+function ensureAudioGraph(music){
+ if(music.context)return;
+ music.context=new AudioContext();
+ music.source=music.context.createMediaElementSource(music.audio);
+ music.gain=music.context.createGain();
+ music.source.connect(music.gain);
+ music.gain.connect(music.context.destination);
+ music.destination=music.context.createMediaStreamDestination();
+ music.gain.connect(music.destination);
+}
+
 export function attachLiveRecording(stage,music,getData,activityId){
- const button=document.createElement('button');button.id='liveRecording';button.type='button';button.textContent='正在准备现场录制…';(document.querySelector('#controls')||document.body).append(button);
- let recorder,stream,meta,channel,timer,index=0,pending=Promise.resolve(),stopped=false,failure='';
- const persist=()=>store('sessions','readwrite',s=>s.put({...meta}));
- const stop=()=>{if(recorder?.state==='recording'){stopped=true;button.disabled=true;button.textContent='正在保存现场录像…';recorder.stop()}};
- button.onclick=stop;
- const cleanup=()=>{clearInterval(timer);channel?.close();stream?.getTracks().forEach(t=>t.stop())};
- (async()=>{try{
-  if(!globalThis.MediaRecorder||!stage.canvas.captureStream||!globalThis.indexedDB||!globalThis.BroadcastChannel)throw Error('浏览器不支持现场录制，请使用 Chrome 或 Edge');
-  const mimeType=['video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));if(!mimeType)throw Error('没有可用的 WebM 编码器');
-  // Prepare the same audio graph StageMusic.enable uses, without starting music.
-  if(!music.context){music.context=new AudioContext();music.source=music.context.createMediaElementSource(music.audio);music.gain=music.context.createGain();music.source.connect(music.gain);music.gain.connect(music.context.destination);music.destination=music.context.createMediaStreamDestination();music.gain.connect(music.destination)}
-  stream=stage.canvas.captureStream(30);for(const t of music.destination.stream.getAudioTracks())stream.addTrack(t.clone());
-  const initial=getData();meta={key:crypto.randomUUID(),activityId:String(activityId),startedAt:Date.now(),endedAt:null,drawAt:null,active:true,mimeType,width:stage.canvas.width,height:stage.canvas.height,preDrawCaptured:initial?initial.status!=='drawn':null};await persist();
-  recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:8000000,audioBitsPerSecond:192000});
-  recorder.ondataavailable=e=>{if(!e.data.size)return;const chunk={session:meta.key,index:index++,blob:e.data};pending=pending.then(async()=>{await store('chunks','readwrite',s=>s.put(chunk));meta.updatedAt=Date.now();await persist()}).catch(e=>{failure=e.message;stop()})};
-  recorder.onerror=e=>{failure=e.error?.message||'录制失败';stop()};
-  recorder.onstop=async()=>{clearInterval(timer);await pending;meta.active=false;meta.endedAt=Date.now();meta.error=failure;try{await persist();button.textContent=failure?'现场录制保存失败：'+failure:'现场录像已保存 · 请到结果导出页下载'}catch(e){button.textContent='现场录像保存失败：'+e.message}cleanup()};
-  channel=new BroadcastChannel(CHANNEL);channel.onmessage=e=>{if(e.data?.type==='stop'&&e.data.key===meta.key)stop()};
-  recorder.start(1000);button.textContent='● 现场录制中 · 点击结束并保存';
-  timer=setInterval(()=>{const d=getData();if(!d||stopped)return;if(meta.preDrawCaptured===null)meta.preDrawCaptured=d.status!=='drawn';if(d.status==='drawn'&&meta.drawAt===null){meta.drawAt=Date.parse(d.revealStartedAt)||Date.now();pending=pending.then(persist).catch(e=>{failure=e.message;stop()})}},250);
-  addEventListener('pagehide',stop,{once:true});
- }catch(e){failure=e.message;if(meta){meta.active=false;meta.error=failure;await persist().catch(()=>{})}cleanup();button.textContent='现场录制不可用：'+failure;button.disabled=true}})();
- return {stop};
+ const button=document.createElement('button'),hint=document.createElement('span');
+ button.id='liveRecording';
+ button.type='button';
+ button.disabled=true;
+ button.textContent='正在准备录制…';
+ hint.id='recordingHint';
+ const rules='大屏打开时自动录制，关闭时停止，重新打开后继续录制新片段。关屏期间不计入视频，导出时按顺序拼接。关窗时尚未保存的最后一小段可能丢失。音乐关屏时暂停，重开后续播；若浏览器拦截自动播放，点一下大屏即可。请在录制所用的浏览器里下载。';
+ function setHint(message=''){
+  hint.textContent=(message?message+' ':'')+rules;
+  hint.title=hint.textContent;
+ }
+ setHint();
+ button.setAttribute('aria-describedby',hint.id);
+ (document.querySelector('#controls')||document.body).append(button);
+
+ let session=null,enabled=true,starting=false,closed=false;
+ async function commit(s,chunk){
+  const target=await db();
+  return new Promise((resolve,reject)=>{
+   const tx=target.transaction(['sessions','chunks'],'readwrite');
+   if(chunk)tx.objectStore('chunks').put(chunk);
+   tx.objectStore('sessions').put({...s.meta});
+   tx.oncomplete=resolve;
+   tx.onabort=()=>reject(tx.error||Error('现场录像保存失败'));
+  });
+ }
+ function stop(keepRecording=false){
+  enabled=keepRecording;
+  const s=session;
+  if(s?.recorder.state==='recording'){
+   s.stopAt=Date.now();
+   button.textContent='正在保存片段…';
+   s.recorder.stop();
+  }
+ }
+ async function capture(){
+  if(closed||!enabled||session)return;
+  const canRecord=globalThis.MediaRecorder&&stage.canvas.captureStream&&globalThis.indexedDB&&globalThis.BroadcastChannel;
+  if(!canRecord)throw Error('当前浏览器不支持现场录像');
+  const mimeType=['video/webm;codecs=vp8,opus','video/webm','video/mp4;codecs=avc1.42001f,mp4a.40.2','video/mp4'].find(type=>MediaRecorder.isTypeSupported(type));
+  if(!mimeType)throw Error('当前浏览器没有可用的录像编码器');
+  ensureAudioGraph(music);
+  const stream=stage.canvas.captureStream(30);
+  const audio=music.context.state==='running'?music.destination.stream.getAudioTracks()[0]:null;
+  if(audio)stream.addTrack(audio.clone());
+  let recorder,channel;
+  try{
+   recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:8000000,audioBitsPerSecond:192000,videoKeyFrameIntervalDuration:1000});
+   channel=new BroadcastChannel(CHANNEL);
+  }catch(error){stream.getTracks().forEach(track=>track.stop());throw error}
+  const startedAt=Date.now(),clock=performance.now();
+  const meta={recordingVersion:2,key:crypto.randomUUID(),activityId:String(activityId),startedAt,updatedAt:startedAt,active:true,
+   mimeType:recorder.mimeType||mimeType,width:stage.canvas.width,height:stage.canvas.height,
+   drawOffset:getData()?.status==='drawn'?0:null,savedSeconds:0,chunkCount:0};
+  const s={recorder,meta,clock,stopAt:null,hasAudio:Boolean(audio)};
+  let pending=Promise.resolve(),error='',nextIndex=0;
+  session=s;
+  let resolveStop;
+  const done=new Promise(resolve=>{resolveStop=resolve});
+  recorder.ondataavailable=event=>{
+   if(!event.data.size)return;
+   const index=nextIndex++,savedSeconds=Math.max(meta.savedSeconds,Math.min((s.stopAt||Date.now())-startedAt,performance.now()-clock)/1000),updatedAt=Date.now();
+   pending=pending.then(async()=>{if(error)return;const snapshot={meta:{...meta,chunkCount:index+1,savedSeconds,updatedAt,bytesSaved:(meta.bytesSaved||0)+event.data.size}};await commit(snapshot,{session:meta.key,index,blob:event.data});Object.assign(meta,{chunkCount:index+1,savedSeconds,updatedAt,bytesSaved:snapshot.meta.bytesSaved})}).catch(problem=>{error=problem.name==='QuotaExceededError'?'浏览器录像空间已满；此前成功保存的片段仍可导出':problem.message;stop()});
+  };
+  recorder.onerror=event=>{error=event.error?.message||'编码器停止工作';stop()};
+  recorder.onstop=async()=>{
+   await pending;
+   meta.endedAt=s.stopAt||Date.now();
+   meta.active=false;
+   meta.error=error;
+   try{await commit(s)}catch(problem){error=problem.message}
+   finally{
+    channel.close();
+    stream.getTracks().forEach(track=>track.stop());
+    session=null;
+    button.textContent=error?'录制保存异常':'正在准备录制…';
+    if(error)setHint('录制保存异常：'+error);
+    resolveStop();
+   }
+  };
+  channel.onmessage=event=>{if(event.data?.type==='stop'&&event.data.key===meta.key)stop()};
+  try{
+   recorder.start(750);
+   pending=commit({meta:{...meta}}).catch(problem=>{error=problem.message;stop()});
+   button.textContent='正在录制抽奖全过程';
+   setHint();
+   await done;
+  }catch(error){
+   channel.close();stream.getTracks().forEach(track=>track.stop());session=null;throw error;
+  }
+ }
+ function begin(){
+  if(starting||closed||document.hidden||session||!enabled||!getData())return;
+  starting=true;
+  const captureHere=lock=>{
+   if(lock===null){enabled=false;button.textContent='另一窗口正在录制';setHint('请使用另一扇大屏，或关闭它后刷新此页。');return}
+   return capture();
+  };
+  const task=navigator.locks?navigator.locks.request('lucky-live:'+activityId,{ifAvailable:true},captureHere):capture();
+  task.catch(error=>{enabled=false;button.textContent='录制不可用';setHint(error.message+'。请刷新大屏重试。')}).finally(()=>{starting=false});
+ }
+ addEventListener('visibilitychange',()=>{
+  if(document.hidden&&session?.recorder.state==='recording'){
+   stop(true);
+  }else if(!document.hidden)begin();
+ });
+ addEventListener('pagehide',()=>{closed=true;stop()});
+ addEventListener('pageshow',event=>{if(event.persisted){closed=false;enabled=true;begin()}});
+ return {observe(){
+  if(session&&session.meta.drawOffset===null&&getData()?.status==='drawn')session.meta.drawOffset=(performance.now()-session.clock)/1000;
+  if(session?.recorder.state==='recording'&&session.hasAudio!==(music.context.state==='running'))stop(true);
+  begin();
+ }};
 }
 
-// Decode and re-record a selected real segment. WebM chunks cannot be byte-sliced.
-export async function trimRecording(blob,startSeconds,endSeconds,{signal,onProgress=()=>{}}={}){
- if(startSeconds<=0)return blob;
- const video=document.createElement('video'),canvas=document.createElement('canvas'),url=URL.createObjectURL(blob);video.src=url;video.playsInline=true;video.preload='auto';video.style.cssText='position:fixed;left:-10000px;width:2px;height:2px';document.body.append(video);
- let context,stream,recorder,frame,abort;
- const wait=event=>new Promise((resolve,reject)=>{const ok=()=>{clean();resolve()},bad=()=>{clean();reject(video.error||Error('录像无法解码'))},cancel=()=>{clean();reject(new DOMException('已取消','AbortError'))},clean=()=>{video.removeEventListener(event,ok);video.removeEventListener('error',bad);signal?.removeEventListener('abort',cancel)};video.addEventListener(event,ok,{once:true});video.addEventListener('error',bad,{once:true});signal?.addEventListener('abort',cancel,{once:true});if(signal?.aborted)cancel()});
+
+async function stitchRecordingsRealtime(clips,{signal,includeMusic=true,onProgress=()=>{}}={}){
+ const cancelled=()=>new DOMException('已取消','AbortError');
+ if(signal?.aborted)throw cancelled();
+ if(!clips.length)throw Error('没有可导出的录像片段');
+ const mimeType=mp4MimeType();
+ const video=document.createElement('video'),canvas=document.createElement('canvas');
+ video.playsInline=true;
+ video.preload='auto';
+ video.style.cssText='position:fixed;left:-10000px;width:2px;height:2px';
+ document.body.append(video);
+ const context=includeMusic?new AudioContext():null;
+ let stream,recorder,done,url,frame=0,failPlayback;
+ const chunks=[];
+ const total=clips.reduce((sum,clip)=>sum+clip.to-clip.from,0);
+ const abort=()=>{if(recorder&&recorder.state!=='inactive')recorder.stop();failPlayback?.(cancelled())};
+ signal?.addEventListener('abort',abort);
+ const wait=(name)=>new Promise((resolve,reject)=>{
+  const clean=()=>{clearTimeout(timer);video.removeEventListener(name,ok);video.removeEventListener('error',bad);signal?.removeEventListener('abort',cancel)};
+  const ok=()=>{clean();resolve()},bad=()=>{clean();reject(Error('录像片段无法解码'))},cancel=()=>{clean();reject(cancelled())};
+  const timer=setTimeout(()=>{clean();reject(Error('读取录像片段超时'))},20000);
+  video.addEventListener(name,ok,{once:true});
+  video.addEventListener('error',bad,{once:true});
+  signal?.addEventListener('abort',cancel,{once:true});
+  if(signal?.aborted)cancel();
+ });
  try{
-  await wait('loadedmetadata');canvas.width=video.videoWidth;canvas.height=video.videoHeight;const ctx=canvas.getContext('2d');
-  // MediaRecorder WebM often has no finite duration; force the demuxer to find it.
-  if(!Number.isFinite(video.duration)){const seek=wait('seeked');video.currentTime=1e10;await seek}
-  const end=Math.min(Number.isFinite(video.duration)?video.duration:endSeconds,endSeconds);if(!(end>startSeconds))throw Error('所选时间段没有可用录像');
-  const seek=wait('seeked');video.currentTime=startSeconds;await seek;ctx.drawImage(video,0,0);
-  context=new AudioContext();const source=context.createMediaElementSource(video),destination=context.createMediaStreamDestination();source.connect(destination);await context.resume();
-  stream=canvas.captureStream(30);for(const track of destination.stream.getAudioTracks())stream.addTrack(track);
-  const mimeType=['video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:8000000});const chunks=[];recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
-  const done=new Promise((resolve,reject)=>{recorder.onstop=resolve;recorder.onerror=e=>reject(e.error||Error('视频裁剪失败'))});
-  abort=()=>{if(recorder.state==='recording')recorder.stop()};signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted)throw new DOMException('已取消','AbortError');
-  const draw=()=>{if(recorder.state!=='recording')return;ctx.drawImage(video,0,0);onProgress(Math.min(1,(video.currentTime-startSeconds)/(end-startSeconds)));if(video.ended||video.currentTime>=end){recorder.stop();return}frame=requestAnimationFrame(draw)};
-  video.onended=abort;recorder.start(1000);await video.play();draw();await done;if(signal?.aborted)throw new DOMException('已取消','AbortError');const result=new Blob(chunks,{type:mimeType});if(!result.size)throw Error('裁剪视频为空');return result;
- }finally{signal?.removeEventListener('abort',abort);cancelAnimationFrame(frame);if(recorder?.state==='recording')recorder.stop();video.pause();video.remove();stream?.getTracks().forEach(t=>t.stop());await context?.close();URL.revokeObjectURL(url)}
+  let destination;
+  if(context){
+   const source=context.createMediaElementSource(video);
+   destination=context.createMediaStreamDestination();
+   source.connect(destination);
+   const resumeAudio=context.resume();
+   let retry;
+   try{
+    await Promise.race([resumeAudio,new Promise((_,reject)=>{retry=setTimeout(()=>reject(Error('音频处理未启动，请保持页面在前台后重试，或取消「视频包含音乐」')),7000)})]);
+   }finally{clearTimeout(retry)}
+
+  }else video.muted=true;
+  let completed=0;
+  const ctx=canvas.getContext('2d');
+  for(const clip of clips){
+   if(signal?.aborted)throw cancelled();
+   const {blob}=await readRecording(clip.key);
+   url=URL.createObjectURL(blob);
+   const loaded=wait('loadedmetadata');
+   video.src=url;
+   await loaded;
+   let end=Math.min(clip.to,Number.isFinite(video.duration)?video.duration:clip.to);
+   if(end<=clip.from){video.removeAttribute('src');video.load();URL.revokeObjectURL(url);url=null;continue}
+   if(clip.from>0){const seek=wait('seeked');video.currentTime=clip.from;await seek}
+   if(video.readyState<2)await wait('loadeddata');
+   if(!recorder){canvas.width=video.videoWidth;canvas.height=video.videoHeight}
+   ctx.drawImage(video,0,0,canvas.width,canvas.height);
+   if(!recorder){
+    stream=canvas.captureStream(30);
+    for(const track of destination?.stream.getAudioTracks()||[])stream.addTrack(track);
+    recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:8000000,audioBitsPerSecond:192000});
+    recorder.ondataavailable=event=>{if(event.data.size)chunks.push(event.data)};
+    done=new Promise((resolve,reject)=>{recorder.onstop=resolve;recorder.onerror=event=>{const error=event.error||Error('MP4 编码失败');failPlayback?.(error);reject(error)}});
+    done.catch(()=>{});
+   }
+   const play=video.play();
+   if(recorder.state==='inactive')recorder.start(1000);
+   else if(recorder.state==='paused')recorder.resume();
+   const playTimeout=new Promise((_,reject)=>{const timer=setTimeout(()=>reject(Error('录像片段无法开始播放')),12000);play.then(()=>clearTimeout(timer),()=>clearTimeout(timer))});
+   await Promise.race([play,playTimeout]);
+   await new Promise((resolve,reject)=>{
+    const clear=()=>{clearTimeout(timer);cancelAnimationFrame(frame);video.onended=video.onerror=video.ontimeupdate=null;failPlayback=null};
+    const finish=()=>{clear();resolve()};
+    const fail=error=>{clear();reject(error)};
+    const timer=setTimeout(()=>fail(Error('录制片段播放超时，请保持导出页面可见')),Math.max(20000,(end-clip.from+20)*1000));
+    failPlayback=fail;
+    video.onended=finish;
+   video.ontimeupdate=()=>{if(video.currentTime>=end&&document.hidden)fail(Error('请让导出页面保持可见后重试'))};
+    video.onerror=()=>fail(Error('拼接时读取录像失败'));
+    const draw=()=>{
+     if(signal?.aborted){fail(cancelled());return}
+     ctx.drawImage(video,0,0,canvas.width,canvas.height);
+     onProgress(Math.min(1,(completed+video.currentTime-clip.from)/total));
+     if(video.ended||video.currentTime>=end){finish();return}
+     frame=requestAnimationFrame(draw);
+    };
+    draw();
+   });
+   if(recorder.state==='recording')recorder.pause();
+   video.pause();
+   completed+=Math.min(end,video.currentTime)-clip.from;
+   video.removeAttribute('src');
+   video.load();
+   URL.revokeObjectURL(url);
+   url=null;
+  }
+  if(!recorder)throw Error('没有可解码的录像画面');
+  if(recorder.state!=='inactive')recorder.stop();
+  await done;
+  if(signal?.aborted)throw cancelled();
+  const blob=new Blob(chunks,{type:recorder.mimeType||mimeType});
+  if(!blob.size)throw Error('拼接结果为空');
+  onProgress(1);
+  return blob;
+ }finally{
+  signal?.removeEventListener('abort',abort);
+  cancelAnimationFrame(frame);
+  if(recorder&&recorder.state!=='inactive')recorder.stop();
+  video.pause();
+  video.remove();
+  stream?.getTracks().forEach(track=>track.stop());
+  if(url)URL.revokeObjectURL(url);
+  await context?.close();
+ }
 }
+
+export async function stitchRecordings(clips,options={}){if(globalThis.VideoEncoder&&(!options.includeMusic||globalThis.AudioEncoder)){const {fastRecordingExport}=await import('./fast-recording-export.js?v=20261122-fix8');return fastRecordingExport(clips,readRecording,options)}return stitchRecordingsRealtime(clips,options)}

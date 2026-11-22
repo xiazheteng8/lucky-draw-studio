@@ -1,5 +1,6 @@
 export function interactionInput(body={}){const kind=body.kind==='like'?'like':body.kind==='message'?'message':'';if(!kind)throw Error('请选择留言或点爱心');const viewer=String(body.viewer||'');if(!/^[a-zA-Z0-9-]{16,80}$/.test(viewer))throw Error('请刷新页面后重试');const name=String(body.name||'现场观众').trim().slice(0,24),text=String(body.text||'').trim();if(kind==='message'&&(!text||text.length>120))throw Error('留言请填写 1–120 个字');return {kind,viewer,name:name||'现场观众',text:kind==='message'?text:''}}
 export function publicBase(value,fallback){if(!value)return fallback;try{const u=new URL(value);if(!['http:','https:'].includes(u.protocol)||u.username||u.password||u.pathname!=='/'||u.search||u.hash)throw Error();return u.origin}catch{throw Error('手机访问地址请填写完整的 http:// 或 https:// 域名及端口，不包含路径')}}
-export function interactionOpen(g){return g.status!=='drawn'&&(g.source_mode==='wechat'||JSON.parse(g.presentation_json||'{}').interactionEnabled!==false)}
+export function signupAllowed(g){return g.source_mode==='wechat'||g.source_mode==='custom'&&JSON.parse(g.presentation_json||'{}').allowSignup===true}
+export function interactionOpen(g){return g.status!=='drawn'&&signupAllowed(g)}
 
 export function normalizeWechatAvatar(value){try{const u=new URL(String(value||''));if(!['http:','https:'].includes(u.protocol)||!['wx.qlogo.cn','thirdwx.qlogo.cn','q.qlogo.cn'].includes(u.hostname))return '';u.protocol='https:';return u.href}catch{return ''}}

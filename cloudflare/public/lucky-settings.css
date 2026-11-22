@@ -1,0 +1,177 @@
+html[data-theme] :is(#themeDialog, #donationDialog, dialog.spring-unlock, dialog.activity-settings) {
+  position: fixed !important;
+  inset: 0;
+  margin: auto;
+  max-width: calc(100vw - 2rem);
+  max-height: min(88vh, 88dvh);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+html[data-theme] body :is(#themeDialog, #donationDialog, dialog.spring-unlock, dialog.activity-settings)[open]::after {
+  content: none !important;
+  display: none !important;
+}
+dialog.activity-settings { width: min(100%, 560px); }
+.activity-settings label { display: block; margin-block: .75rem; }
+.activity-settings input:not([type=checkbox]), .activity-settings textarea { display: block; width: 100%; }
+.activity-settings input[type=checkbox] { margin-inline-start: .65rem; }
+.activity-settings .actions { display: flex; justify-content: flex-end; gap: .65rem; margin-top: 1rem; }
+.prize-setting-row { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: end; gap: .5rem; margin-block: .75rem; }
+.prize-setting-row label { margin: 0; }
+.prize-setting-row span { align-self: end; padding-block: .55rem; }
+html[data-theme=caishen] #dash .page-heading > img.hero-character.hero-wealth {
+  position: absolute;
+  inset: auto 15% 9% auto;
+  display: block !important;
+  visibility: visible !important;
+  width: min(18%, 190px);
+  height: 80%;
+  object-fit: contain;
+  object-position: bottom;
+  pointer-events: none;
+  z-index: 2;
+}
+@media (max-width: 700px) {
+  html[data-theme=caishen] #dash .page-heading > img.hero-character.hero-wealth { right: 4%; width: 24%; height: 58%; }
+}
+
+html[data-theme] :is(dialog,.panel,.giveaway,.account-shell,#create,.visual-settings) :is(details,fieldset,.retention-note,[role=button][id$=Drop]){
+  background-color: var(--panel) !important;
+  background-image: none !important;
+  color: var(--ink) !important;
+}
+html[data-theme] :is(dialog,.panel,.giveaway,.account-shell,#create,.visual-settings) :is(label,summary,legend,dt,dd){
+  color: var(--ink) !important;
+}
+html[data-theme] :is(dialog,.panel,.giveaway,.account-shell,#create,.visual-settings) :is(.muted,.tiny,small,.retention-note){
+  color: var(--muted) !important;
+}
+html[data-theme] :is(dialog,.panel,.account-shell,#create,.visual-settings) :is(input:not([type=checkbox],[type=radio],[type=range]),select,textarea){
+  background-color: var(--panel) !important;
+  color: var(--ink) !important;
+  border-color: var(--line);
+}
+html[data-theme] :is(dialog,.panel,.account-shell,#create,.visual-settings) :is(input,textarea)::placeholder{
+  color: var(--muted) !important;
+  opacity: 1;
+}
+html[data-theme=caishen] :is(#create,.visual-settings,.giveaway,.account-shell .panel,dialog,.metrics article){
+  --panel: #fff2da;
+  --ink: #68151c;
+  --muted: #754036;
+  --line: #a8683b;
+  color: var(--ink);
+  color-scheme: light;
+}
+html[data-theme=caishen] :is(#create,.visual-settings,#activities .giveaway){
+  background: #fff2da !important;
+}
+html[data-theme=caishen] :is(#create,.visual-settings) :is(.tag,.eyebrow){
+  color: #754036;
+}
+html[data-theme=caishen] .activity-section > .section-head :is(h2,.muted,.eyebrow){color:#ffebca !important}
+html[data-theme=caishen] .account-shell > :is(h1,p){color:#ffebca}
+html[data-theme=caishen] :is(.panel,.giveaway,.account-page) a{color:inherit}
+dialog.prize-settings .prize-drop {
+  display: block;
+  width: 100%;
+  border: 1px dashed var(--cyan);
+  background: var(--panel);
+  color: var(--ink);
+  margin-block: .75rem;
+  padding: 1.2rem .65rem;
+  text-align: center;
+}
+dialog.prize-settings .prize-drop.is-dragging { outline: 2px solid var(--cyan); }
+dialog.prize-settings .prize-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: .65rem;
+  margin-top: 1rem;
+}
+html[data-theme] body dialog.prize-settings .prize-actions > button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: 6.5rem;
+  height: 2.75rem;
+  margin: 0 !important;
+  padding: 0 .9rem !important;
+  line-height: 1.2;
+}
+html[data-theme=paper] { --muted: #4d5d6b !important; }
+html[data-theme] #activities .giveaway .draw-action {
+  background: var(--cyan) !important;
+  color: var(--on-accent) !important;
+  border-color: var(--line) !important;
+}
+html[data-theme=caishen] #activities .giveaway .draw-action,
+html[data-theme=caishen] #dash #create :is(.primary,.mode-grid button.selected),
+html[data-theme=festival] body dialog .primary {
+  background: #a51625 !important;
+  color: #fff5da !important;
+}
+html[data-theme=caishen] #dash #create .mode-grid button.selected :is(span,small),
+html[data-theme=festival] body dialog .primary :is(span,small) {
+  color: #fff5da !important;
+}
+html[data-theme=festival] #dash .header-actions :is(#openMusic,#openDonation) {
+  background: #78192d !important;
+  color: #fff4df !important;
+}
+html[data-theme=festival] #dash .page-heading { background-color: #45152e !important; }
+html[data-theme=festival] #dash #create .create-submit {
+  background: #a51625 !important;
+  color: #fff5da !important;
+}
+
+dialog.prize-settings .prize-ranks {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(94px,1fr);
+  gap: .55rem;
+  overflow-x: auto;
+  padding: .2rem .15rem .45rem;
+  align-items: start;
+}
+dialog.prize-settings .prize-setting-row {
+  display: block;
+  min-width: 0;
+  margin: 0;
+}
+dialog.prize-settings .prize-setting-row input {
+  margin-top: .35rem;
+  min-height: 2.3rem;
+  padding: .4rem .55rem;
+  font-size: 14px;
+}
+dialog.prize-settings .prize-setting-row button {
+  margin: .3rem 0 0!important;
+  padding: .3rem .45rem;
+}
+dialog.prize-settings :is(.prize-rank-heading,.prize-display-hint) {margin-block: .5rem}
+
+html[data-theme] #activities .giveaway .status-pill{background:#233e4b!important;color:#e6f7ff!important;border:1px solid #93bbcf!important;font-size:12px;font-weight:700}
+:is([data-video],#replayVideo){position:relative;isolation:isolate}
+:is([data-video],#replayVideo).assembling{opacity:1!important;border-color:#718b9e!important;cursor:progress;overflow:hidden}
+:is([data-video],#replayVideo).assembling::before{content:"";position:absolute;z-index:-1;inset:0 auto 0 0;width:var(--video-progress,0%);background:#5496bb66}
+#exportStatus:empty{display:none}
+
+.activity-music-editor { margin-block:1.25rem; padding-block:1rem; border-top:1px solid currentColor; }
+.activity-music-editor h3 { margin:.3rem 0; }
+.activity-music-editor p { line-height:1.6; }
+.activity-music-editor label { display:block; }
+.activity-music-editor fieldset { border:0; padding:0; min-width:0; }
+.activity-music-editor fieldset:disabled { opacity:.65; }
+.activity-music-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.5rem; align-items:end; margin-block:.8rem; }
+.activity-music-row select { width:100%; margin-top:.3rem; }
+.activity-music-upload { grid-column:1 / -1; font-size:.85rem; }
+.activity-music-upload input { display:block; width:100%; }
+.activity-music-editor input[type=range] { width:85%; vertical-align:middle; }
+@media(max-width:480px){.activity-music-row{grid-template-columns:minmax(0,1fr)}.activity-music-upload{grid-column:auto}}
+
+.activity-music-row{grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:end}.activity-music-row button,.activity-music-row .activity-music-upload{grid-column:auto!important;width:auto!important;margin:0!important;padding:9px 10px!important;min-height:40px;font-size:12px;white-space:nowrap}.activity-music-upload input[hidden]{display:none!important}@media(max-width:480px){.activity-music-row{grid-template-columns:minmax(0,1fr) auto auto}.activity-music-row button{padding:8px 6px!important;font-size:11px}}
+
+#themeSwitchLoading{position:fixed;inset:0;z-index:2147483647;display:grid;place-content:center;background:#081321ed;color:#fff;font:600 22px/1.8 system-ui}body:has(#themeSwitchLoading) #themeDialog{pointer-events:none}

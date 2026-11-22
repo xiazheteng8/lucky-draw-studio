@@ -39,7 +39,7 @@ await fs.writeFile(path.join(output, '404.html'), '<!doctype html><html lang="zh
 await fs.writeFile(path.join(output, '_headers'), `/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://telegram.org; frame-src 'self' https://oauth.telegram.org https://telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://telegram.org; worker-src 'self' blob:; frame-src 'self' https://oauth.telegram.org https://telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'
 `);
 const buildCwd = await fs.mkdtemp(path.join(process.env.TMPDIR || os.tmpdir(), 'giveaway-pages-build-'));
 let result;

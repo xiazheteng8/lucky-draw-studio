@@ -1,40 +1,18 @@
-// User-provided human "Wow" recording. Source details: ./sfx/README.md
-// Use StageMusic's shared gain: never bypass mute, volume or recording routing.
-const soundUrl=new URL('./sfx/wow.wav',import.meta.url);
-const decoded=new WeakMap();
-let encoded;
-function loadBytes(){
- if(!encoded)encoded=fetch(soundUrl).then(response=>{
-  if(!response.ok)throw new Error(`Winner sound HTTP ${response.status}`);
-  return response.arrayBuffer();
- }).catch(error=>{encoded=undefined;throw error});
- return encoded;
+// User recordings only. Audio and recording share StageMusic's master gain.
+import {winnerAudioClips} from './winner-audio.js?v=20261119-user7';
+export const winnerSoundLabels=winnerAudioClips.map(clip=>clip.name);
+const contexts=new WeakMap();let poolReady;
+function prepareClip(context,input){
+ const rate=input.sampleRate,window=Math.max(1,Math.floor(rate*.01)),threshold=.004;let first=-1,last=-1,peak=0;
+ for(let start=0;start<input.length;start+=window){let energy=0;const end=Math.min(input.length,start+window);for(let channel=0;channel<input.numberOfChannels;channel++){const samples=input.getChannelData(channel);for(let i=start;i<end;i++){energy+=samples[i]*samples[i];peak=Math.max(peak,Math.abs(samples[i]))}}if(Math.sqrt(energy/((end-start)*input.numberOfChannels))>threshold){if(first<0)first=start;last=end}}
+ if(first<0||peak<.005)throw Error('Empty audio cue');
+ const start=Math.max(0,first-Math.floor(rate*.015)),end=Math.min(input.length,last+Math.floor(rate*.08)),buffer=context.createBuffer(input.numberOfChannels,end-start,rate);let energy=0;
+ for(let channel=0;channel<buffer.numberOfChannels;channel++){const samples=buffer.getChannelData(channel);samples.set(input.getChannelData(channel).subarray(start,end));for(const sample of samples)energy+=sample*sample}
+ const rms=Math.sqrt(energy/(buffer.length*buffer.numberOfChannels)),gain=Math.min(.65/peak,.14/(rms||1),2),fade=Math.min(Math.floor(rate*.035),Math.floor(buffer.length/4));
+ for(let channel=0;channel<buffer.numberOfChannels;channel++){const samples=buffer.getChannelData(channel);for(let i=0;i<samples.length;i++)samples[i]*=gain*Math.min(1,i/(rate*.002),(samples.length-1-i)/fade)}return buffer;
 }
-// Speculatively fetch on import; prepareWinnerSound exposes failures and retries.
-void loadBytes().catch(()=>{});
-export function prepareWinnerSound(context){
- let entry=decoded.get(context);
- if(!entry){
-  entry={buffer:null,promise:null};
-  entry.promise=loadBytes().then(bytes=>context.decodeAudioData(bytes.slice(0))).then(buffer=>{
-   entry.buffer=buffer;return buffer;
-  }).catch(error=>{decoded.delete(context);throw error});
-  decoded.set(context,entry);
- }
- return entry.promise;
-}
-// Keep the synchronous API: return cancellation immediately, even during load.
-export function playWinnerSound(context,output){
- let cancelled=false,source;
- const requestedAt=context.currentTime;
- const start=buffer=>{
-  // Do not emit a stale reveal after a slow first download.
-  if(cancelled||context.state==='closed'||context.currentTime-requestedAt>1)return;
-  source=context.createBufferSource();source.buffer=buffer;source.connect(output);
-  source.onended=()=>source.disconnect();source.start(context.currentTime+.01);
- };
- const cached=decoded.get(context)?.buffer;
- if(cached)start(cached);
- else void prepareWinnerSound(context).then(start).catch(error=>console.warn('Winner sound unavailable',error));
- return ()=>{cancelled=true;if(source){try{source.stop()}catch{}source.disconnect()}};
-}
+function loadPool(context){if(!poolReady)poolReady=Promise.all(winnerAudioClips.map(async clip=>{try{const bytes=Uint8Array.from(atob(clip.base64),c=>c.charCodeAt(0));const input=await context.decodeAudioData(bytes.buffer);return {id:clip.id,buffer:prepareClip(context,input)}}catch(error){console.warn('Audio cue unavailable',clip.id,error);return null}})).then(clips=>{const available=clips.filter(Boolean);if(!available.length)throw Error('No winner audio available');return available}).catch(error=>{poolReady=null;throw error});return poolReady}
+export function prepareWinnerSound(context){let entry=contexts.get(context);if(!entry){entry={clips:null,last:-1,promise:null};entry.promise=loadPool(context).then(clips=>{entry.clips=clips;return clips[0].buffer}).catch(error=>{contexts.delete(context);throw error});contexts.set(context,entry)}return entry.promise}
+export function playWinnerSound(context,output){let cancelled=false,source;const requestedAt=context.currentTime;const start=()=>{const entry=contexts.get(context);if(cancelled||!entry?.clips||context.state==='closed'||context.currentTime-requestedAt>1)return;const random=new Uint32Array(1);crypto.getRandomValues(random);const size=entry.clips.length;let index=random[0]%(entry.last<0||size===1?size:size-1);if(size>1&&entry.last>=0&&index>=entry.last)index++;entry.last=index;source=context.createBufferSource();source.buffer=entry.clips[index].buffer;source.connect(output);source.onended=()=>source.disconnect();source.start(context.currentTime+.01)};if(contexts.get(context)?.clips)start();else void prepareWinnerSound(context).then(start).catch(error=>console.warn('Winner sound unavailable',error));return ()=>{cancelled=true;if(source){try{source.stop()}catch{}source.disconnect()}}}
+// Load and decode all seven clips before the first reveal, without autoplay.
+if(typeof OfflineAudioContext!=='undefined')void prepareWinnerSound(new OfflineAudioContext(1,1,44100)).catch(()=>{});

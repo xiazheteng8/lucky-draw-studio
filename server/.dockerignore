@@ -1,9 +1,9 @@
 node_modules
 data
 .env
-.dev.vars*
-.git
-.wrangler
+.env.*
 *.zip
-work
-outputs
+.git
+lucky-miniapp
+
+!public/roster-template-v2.zip

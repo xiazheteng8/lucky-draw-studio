@@ -1,6 +1,6 @@
 <view class="container main-page">
   <view class="hero">
-    <image class="logo" src="https://lucky.xiazheteng.fun/default-logo.jpg" mode="aspectFit" />
+    <image class="logo" src="/assets/default-logo.jpg" mode="aspectFit" />
     <view class="badge">STUDIO / LIVE SYSTEM</view>
     <view class="title">瞎折腾摇奖吧</view>
     <view class="subtitle">每一份期待，都值得被看见</view>
